@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Hunting Logger</string>
+    <string name="file_picker_name">Select Mapping File</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="menu_title_map_provider">Data Provider</string>
+    <string name="menu_title_legal_notices">Legal Notices</string>
+
+    <string name="dialog_legal_notices_library_attributions">Library Attributions</string>
+    <string-array name="dialog_legal_notices_items">
+        <item>Google Maps Android API</item>
+        <item>USGS Mapping Data</item>
+        <item>NoNonsense File Picker</item>
+    </string-array>
+    <string name="dialog_legal_notices_google_maps_title">Google Maps for Android API v2</string>
+    <string name="dialog_legal_notices_usgs_title">USGS Mapping Data</string>
+    <string name="dialog_legal_notices_usgs_text">This program provides the option to use mapping data provided by The National Map, a project hosted by the United States Geological Survey (USGS) of the United States Department of the Interior. All mapping data provided by their servers is the property of the United States government and must be used according to their terms of use. For more information, please see <a href="http://http://nationalmap.gov//">The National Map</a></string>
+    <string name="dialog_legal_notices_nononsense_title">NoNonsense File Picker</string>
+    <string name="dialog_legal_notices_nononsense_text">This program utilizes the NoNonsense File Picker (https://github.com/spacecowboy/NoNonsense-FilePicker) by GitHub user spacecowboy (https://github.com/spacecowboy). The terms of its license are included below and pertain only to the portion of this application\'s object code which comes from this library.</string>
+
+    <string-array name="dialog_data_provider_chooser_items">
+        <item>Google Terrain (Online)</item>
+        <item>USGS Topographic (Online)</item>
+        <item>Local MBTiles (Offline)</item>
+        <item>Local Cache File (Offline)</item>
+    </string-array>
+</resources>
