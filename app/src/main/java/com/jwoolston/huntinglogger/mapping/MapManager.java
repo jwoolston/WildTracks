@@ -76,20 +76,60 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         initializeMap();
     }
 
-    private void initializeMap() {
-        mMapFragment.getMapAsync(this);
-    }
-
-    public void onPause() {
-        if (mLastLocation != null) updateLastKnownLocationPreference();
-    }
-
     @Override
     public void onMyLocationChange(Location location) {
         if (mLastLocation == null) {
             recenterCamera(new LatLng(location.getLatitude(), location.getLongitude()), 15);
         }
         mLastLocation = location;
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setMyLocationEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.setOnMyLocationChangeListener(this);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
+        mMap.getUiSettings().setCompassEnabled(true);
+        mMap.getUiSettings().setAllGesturesEnabled(true);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+
+        mMap.setOnMapClickListener(this);
+        mMap.setOnMarkerClickListener(this);
+        mMap.setOnInfoWindowClickListener(this);
+
+        selectMapDataProvider();
+
+        reloadLastLocation();
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        Log.d(TAG, "Map clicked at location: " + latLng);
+        placeTemporaryPin(latLng);
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        if (marker.equals(mTempMarker)) {
+            // This is the temp marker
+            Log.d(TAG, "Temporary marker clicked!");
+        } else {
+            // This is a saved marker
+            Log.d(TAG, "Saved marker clicked!");
+        }
+        return false;
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        showPinDropDialog();
+    }
+
+    public void onPause() {
+        if (mLastLocation != null) updateLastKnownLocationPreference();
     }
 
     public void recenterCamera(LatLng position, float zoom) {
@@ -130,6 +170,10 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 1));
     }
 
+    private void initializeMap() {
+        mMapFragment.getMapAsync(this);
+    }
+
     private void disableGoogleMapping() {
         mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
     }
@@ -164,27 +208,6 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         mCurrentMapTiles = mMap.addTileOverlay(opts);
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setMyLocationEnabled(true);
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mMap.setOnMyLocationChangeListener(this);
-        mMap.getUiSettings().setMapToolbarEnabled(false);
-        mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
-        mMap.getUiSettings().setCompassEnabled(true);
-        mMap.getUiSettings().setAllGesturesEnabled(true);
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-
-        mMap.setOnMapClickListener(this);
-        mMap.setOnMarkerClickListener(this);
-        mMap.setOnInfoWindowClickListener(this);
-
-        selectMapDataProvider();
-
-        reloadLastLocation();
-    }
-
     private void selectMapDataProvider() {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
         final int providerType = preferences.getInt(KEY_SELECTED_PROVIDER, DEFAULT_PROVIDER);
@@ -216,18 +239,10 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         dialog.show(fm, DialogEditPin.class.getCanonicalName());
     }
 
-    private final BroadcastReceiver mProviderChangedReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            selectMapDataProvider();
-        }
-    };
-
-
-    @Override
-    public void onMapClick(LatLng latLng) {
-        Log.d(TAG, "Map clicked at location: " + latLng);
-        placeTemporaryPin(latLng);
+    private void reloadLastLocation() {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        final LatLng position = new LatLng(preferences.getFloat(KEY_LAST_LATITUDE, 0.0f), preferences.getFloat(KEY_LAST_LONGITUDE, 0.0f));
+        recenterCamera(position, 15);
     }
 
     private void placeTemporaryPin(LatLng latLng) {
@@ -239,23 +254,6 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         } else {
             mTempMarker.setPosition(latLng);
         }
-    }
-
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        if (marker.equals(mTempMarker)) {
-            // This is the temp marker
-            Log.d(TAG, "Temporary marker clicked!");
-        } else {
-            // This is a saved marker
-            Log.d(TAG, "Saved marker clicked!");
-        }
-        return false;
-    }
-
-    @Override
-    public void onInfoWindowClick(Marker marker) {
-        showPinDropDialog();
     }
 
     public void updateProviderPreferences(int provider, String path) {
@@ -280,9 +278,10 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         mLocalBroadcastManager.sendBroadcast(intent);
     }
 
-    private void reloadLastLocation() {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-        final LatLng position = new LatLng(preferences.getFloat(KEY_LAST_LATITUDE, 0.0f), preferences.getFloat(KEY_LAST_LONGITUDE, 0.0f));
-        recenterCamera(position, 15);
-    }
+    private final BroadcastReceiver mProviderChangedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            selectMapDataProvider();
+        }
+    };
 }

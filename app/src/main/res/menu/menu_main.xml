@@ -2,10 +2,4 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:id="@+id/menu_drop_marker"
-        android:icon="@drawable/ic_pin_drop_white"
-        android:title="@string/menu_title_drop_marker"
-        app:showAsAction="ifRoom" />
-
 </menu>

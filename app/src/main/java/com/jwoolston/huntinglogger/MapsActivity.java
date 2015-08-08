@@ -60,8 +60,53 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == MapManager.LOCAL_MBTILES_FILE) {
+                final Uri uri = data.getData();
+                mMapManager.updateProviderPreferences(MapManager.LOCAL_MBTILES_FILE, uri.getPath());
+            } else if (requestCode == MapManager.LOCAL_CACHE_FILE) {
+                final Uri uri = data.getData();
+                mMapManager.updateProviderPreferences(MapManager.LOCAL_CACHE_FILE, uri.getPath());
+            }
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        mDrawer.closeDrawers();
+        final int id = item.getItemId();
+        if (id == R.id.mapping_source_google_terrain) {
+            mMapManager.updateProviderPreferences(MapManager.GOOGLE_TERRAIN, null);
+            return true;
+        } else if (id == R.id.mapping_source_usgs_topo) {
+            mMapManager.updateProviderPreferences(MapManager.USGS_TOPO_ONLINE, null);
+            return true;
+        } else if (id == R.id.mapping_source_local_mbtiles) {
+            // We need to ask the user to select a file
+            final Intent i = new Intent(this, ActivityFilePicker.class);
+
+            // Set these depending on your use case. These are the defaults.
+            i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
+            i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
+            i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_FILE);
+            i.putExtra(ActivityFilePicker.EXTRA_FILTER_EXTENSION, ".mbtiles");
+
+            // Configure initial directory by specifying a String.
+            i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
+
+            startActivityForResult(i, MapManager.LOCAL_MBTILES_FILE);
+            return true;
+        } else if (id == R.id.menu_settings) {
+            showSettingsFragment();
+            return true;
+        } else if (id == R.id.menu_legal) {
+            showLegalNoticesDialog();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -111,64 +156,14 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
-    private void showLegalNoticesDialog() {
-        final FragmentManager fm = getSupportFragmentManager();
-        final DialogLegalNotices dialog = new DialogLegalNotices();
-        dialog.show(fm, DialogLegalNotices.class.getCanonicalName());
-    }
-
     private void showSettingsFragment() {
         final Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }
 
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        mDrawer.closeDrawers();
-        final int id = item.getItemId();
-        if (id == R.id.mapping_source_google_terrain) {
-            mMapManager.updateProviderPreferences(MapManager.GOOGLE_TERRAIN, null);
-            return true;
-        } else if (id == R.id.mapping_source_usgs_topo) {
-            mMapManager.updateProviderPreferences(MapManager.USGS_TOPO_ONLINE, null);
-            return true;
-        } else if (id == R.id.mapping_source_local_mbtiles) {
-            // We need to ask the user to select a file
-            final Intent i = new Intent(this, ActivityFilePicker.class);
-
-            // Set these depending on your use case. These are the defaults.
-            i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-            i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
-            i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_FILE);
-            i.putExtra(ActivityFilePicker.EXTRA_FILTER_EXTENSION, ".mbtiles");
-
-            // Configure initial directory by specifying a String.
-            i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
-
-            startActivityForResult(i, MapManager.LOCAL_MBTILES_FILE);
-            return true;
-        } else if (id == R.id.menu_settings) {
-            showSettingsFragment();
-            return true;
-        } else if (id == R.id.menu_legal) {
-            showLegalNoticesDialog();
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == MapManager.LOCAL_MBTILES_FILE) {
-                final Uri uri = data.getData();
-                mMapManager.updateProviderPreferences(MapManager.LOCAL_MBTILES_FILE, uri.getPath());
-            } else if (requestCode == MapManager.LOCAL_CACHE_FILE) {
-                final Uri uri = data.getData();
-                mMapManager.updateProviderPreferences(MapManager.LOCAL_CACHE_FILE, uri.getPath());
-            }
-            return;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
+    private void showLegalNoticesDialog() {
+        final FragmentManager fm = getSupportFragmentManager();
+        final DialogLegalNotices dialog = new DialogLegalNotices();
+        dialog.show(fm, DialogLegalNotices.class.getCanonicalName());
     }
 }

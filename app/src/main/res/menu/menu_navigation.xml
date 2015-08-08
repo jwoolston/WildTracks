@@ -25,8 +25,7 @@
     </item>
     <item
         android:id="@+id/menu_settings"
-        android:title="@string/menu_title_settings"
-        android:icon="@drawable/ic_setting_light"/>
+        android:title="@string/menu_title_settings"/>
 
     <item
         android:id="@+id/menu_legal"
