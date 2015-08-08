@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -17,14 +18,18 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.kml.KmlContainer;
 import com.google.maps.android.kml.KmlLayer;
 import com.google.maps.android.kml.KmlPlacemark;
 import com.google.maps.android.kml.KmlPolygon;
-import com.jwoolston.huntinglogger.tileprovider.URLCacheTileProvider;
+import com.jwoolston.huntinglogger.R;
+import com.jwoolston.huntinglogger.dialog.DialogEditPin;
 import com.jwoolston.huntinglogger.tileprovider.MapBoxOfflineTileProvider;
+import com.jwoolston.huntinglogger.tileprovider.URLCacheTileProvider;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -35,7 +40,7 @@ import java.io.IOException;
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapReadyCallback {
+public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
     private static final String TAG = MapManager.class.getSimpleName();
     private static final String USGS_TOPO_URL = "http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
@@ -54,6 +59,8 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
     private final SupportMapFragment mMapFragment;
     private final LocalBroadcastManager mLocalBroadcastManager;
     private GoogleMap mMap;
+
+    private Marker mTempMarker;
 
     private Location mLastLocation;
 
@@ -163,6 +170,10 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         mMap.getUiSettings().setAllGesturesEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
+        mMap.setOnMapClickListener(this);
+        mMap.setOnMarkerClickListener(this);
+        mMap.setOnInfoWindowClickListener(this);
+
         selectMapDataProvider();
     }
 
@@ -191,10 +202,65 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         }
     }
 
+    private void showPinDropDialog() {
+        final FragmentManager fm = mMapFragment.getActivity().getSupportFragmentManager();
+        final DialogEditPin dialog = new DialogEditPin();
+        dialog.show(fm, DialogEditPin.class.getCanonicalName());
+    }
+
     private final BroadcastReceiver mProviderChangedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             selectMapDataProvider();
         }
     };
+
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        Log.d(TAG, "Map clicked at location: " + latLng);
+        placeTemporaryPin(latLng);
+    }
+
+    private void placeTemporaryPin(LatLng latLng) {
+        if (mTempMarker == null) {
+            mTempMarker = mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .draggable(true)
+                .title(mContext.getString(R.string.new_marker_title)));
+        } else {
+            mTempMarker.setPosition(latLng);
+        }
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        if (marker.equals(mTempMarker)) {
+            // This is the temp marker
+            Log.d(TAG, "Temporary marker clicked!");
+        } else {
+            // This is a saved marker
+            Log.d(TAG, "Saved marker clicked!");
+        }
+        return false;
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        showPinDropDialog();
+    }
+
+    public void updateProviderPreferences(int provider, String path) {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        preferences.edit()
+            .putInt(MapManager.KEY_SELECTED_PROVIDER, provider)
+            .putString(MapManager.KEY_PROVIDER_FILE, path)
+            .apply();
+        notifyAppNewProviderSelected();
+    }
+
+    private void notifyAppNewProviderSelected() {
+        final Intent intent = new Intent(MapManager.ACTION_PROVIDER_CHANGED);
+        mLocalBroadcastManager.sendBroadcast(intent);
+    }
 }

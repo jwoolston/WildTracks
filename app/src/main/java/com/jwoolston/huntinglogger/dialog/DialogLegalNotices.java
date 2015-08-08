@@ -22,7 +22,7 @@ public class DialogLegalNotices extends DialogFragment implements DialogInterfac
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_Light_Dialog_Alert);
         builder.setTitle("Legal Notices");
         builder.setItems(R.array.dialog_legal_notices_items, this);
         return builder.create();
@@ -44,21 +44,21 @@ public class DialogLegalNotices extends DialogFragment implements DialogInterfac
     }
 
     private void showGoogleMapsAPIDialog() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_Light_Dialog_Alert);
         builder.setTitle(R.string.dialog_legal_notices_google_maps_title);
         builder.setMessage(GooglePlayServicesUtil.getOpenSourceSoftwareLicenseInfo(getActivity()));
         builder.show();
     }
 
     private void showUSGSDialog() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_Light_Dialog_Alert);
         builder.setTitle(R.string.dialog_legal_notices_usgs_title);
         builder.setMessage(R.string.dialog_legal_notices_usgs_text);
         builder.show();
     }
 
     private void showNoNonsenseFilePickerDialog() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_Light_Dialog_Alert);
         builder.setTitle(R.string.dialog_legal_notices_nononsense_title);
         builder.setMessage(getResources().getString(R.string.dialog_legal_notices_nononsense_text)
             + '\n' + '\n'

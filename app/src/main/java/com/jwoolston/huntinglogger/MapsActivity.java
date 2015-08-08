@@ -1,30 +1,37 @@
 package com.jwoolston.huntinglogger;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.jwoolston.huntinglogger.dialog.DialogDataSourceSelector;
 import com.jwoolston.huntinglogger.dialog.DialogLegalNotices;
 import com.jwoolston.huntinglogger.mapping.MapManager;
+import com.jwoolston.huntinglogger.settings.SettingsActivity;
 
-public class MapsActivity extends AppCompatActivity {
+public class MapsActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MapsActivity";
 
     private MapManager mMapManager;
+    private DrawerLayout mDrawer;
+    private NavigationView mNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
+        mDrawer = (DrawerLayout) findViewById(R.id.main_drawer);
+        mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
+        mNavigationView.setNavigationItemSelectedListener(this);
     }
 
     @Override
@@ -32,6 +39,16 @@ public class MapsActivity extends AppCompatActivity {
         super.onResume();
         // Setup the map
         setUpMapIfNeeded();
+    }
+
+    @Override
+    public boolean onNavigateUp() {
+        if (mDrawer.isDrawerOpen(mNavigationView)) {
+            onBackPressed();
+        } else {
+            mDrawer.openDrawer(mNavigationView);
+        }
+        return false;
     }
 
     @Override
@@ -43,21 +60,13 @@ public class MapsActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        final int id = item.getItemId();
-        if (id == R.id.menu_map_provider) {
-            showMapProviderChooser();
-            return true;
-        } else if (id == R.id.menu_legal) {
-            showLegalNoticesDialog();
-            return true;
-        }
         return super.onOptionsItemSelected(item);
     }
 
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
      * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap(GoogleMap)} once when {@link #mMapManager} is not null.
+     * call {@link #setUpMap(SupportMapFragment)} once when {@link #mMapManager} is not null.
      * <p/>
      * If it isn't installed {@link SupportMapFragment} (and
      * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
@@ -101,15 +110,34 @@ public class MapsActivity extends AppCompatActivity {
         });
     }
 
-    private void showMapProviderChooser() {
-        final FragmentManager fm = getSupportFragmentManager();
-        final DialogDataSourceSelector dialog = new DialogDataSourceSelector();
-        dialog.show(fm, DialogDataSourceSelector.class.getCanonicalName());
-    }
-
     private void showLegalNoticesDialog() {
         final FragmentManager fm = getSupportFragmentManager();
         final DialogLegalNotices dialog = new DialogLegalNotices();
         dialog.show(fm, DialogLegalNotices.class.getCanonicalName());
+    }
+
+    private void showSettingsFragment() {
+        final Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        mDrawer.closeDrawers();
+        final int id = item.getItemId();
+        if (id == R.id.mapping_source_google_terrain) {
+            mMapManager.updateProviderPreferences(MapManager.GOOGLE_TERRAIN, null);
+            return true;
+        } else if (id == R.id.mapping_source_usgs_topo) {
+            mMapManager.updateProviderPreferences(MapManager.USGS_TOPO_ONLINE, null);
+            return true;
+        } else if (id == R.id.menu_settings) {
+            showSettingsFragment();
+            return true;
+        } else if (id == R.id.menu_legal) {
+            showLegalNoticesDialog();
+            return true;
+        }
+        return false;
     }
 }

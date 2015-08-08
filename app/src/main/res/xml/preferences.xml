@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <com.jwoolston.huntinglogger.settings.ItemListPreference
+        android:key="@string/preference_marker_main_categories_key"
+        android:title="@string/preference_marker_main_categories_title"
+        android:summary="@string/preference_marker_main_categories_summary" />
+
+</PreferenceScreen>

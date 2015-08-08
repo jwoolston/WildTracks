@@ -44,9 +44,9 @@ public class DialogDataSourceSelector extends DialogFragment implements DialogIn
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(getActivity());
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         final int checked = preferences.getInt(MapManager.KEY_SELECTED_PROVIDER, MapManager.DEFAULT_PROVIDER);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("Select Map Source");
-        builder.setSingleChoiceItems(R.array.dialog_data_provider_chooser_items, checked, this);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_Light_Dialog_Alert);
+        //builder.setTitle(R.string.dialog_data_provider_title);
+        //builder.setSingleChoiceItems(R.array.dialog_data_provider_chooser_items, checked, this);
         return builder.create();
     }
 
@@ -56,8 +56,8 @@ public class DialogDataSourceSelector extends DialogFragment implements DialogIn
         if (requestCode == FILE_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 Uri uri = data.getData();
-                updateProviderPreferences(uri.getPath());
-                notifyAppNewProviderSelected();
+                //updateProviderPreferences(uri.getPath());
+                //notifyAppNewProviderSelected();
                 dismiss();
             }
             return;
@@ -83,22 +83,9 @@ public class DialogDataSourceSelector extends DialogFragment implements DialogIn
 
             startActivityForResult(i, FILE_CODE);
         } else {
-            updateProviderPreferences(null);
-            notifyAppNewProviderSelected();
+            //updateProviderPreferences(null);
+            //notifyAppNewProviderSelected();
             dialog.dismiss();
         }
-    }
-
-    private void updateProviderPreferences(String path) {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        preferences.edit()
-            .putInt(MapManager.KEY_SELECTED_PROVIDER, mSelectedProvider)
-            .putString(MapManager.KEY_PROVIDER_FILE, path)
-            .apply();
-    }
-
-    private void notifyAppNewProviderSelected() {
-        final Intent intent = new Intent(MapManager.ACTION_PROVIDER_CHANGED);
-        mLocalBroadcastManager.sendBroadcast(intent);
     }
 }
