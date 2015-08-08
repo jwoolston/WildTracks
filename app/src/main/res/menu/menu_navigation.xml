@@ -24,6 +24,9 @@
         </menu>
     </item>
     <item
+        android:id="@+id/menu_activities"
+        android:title="@string/menu_title_activities"/>
+    <item
         android:id="@+id/menu_settings"
         android:title="@string/menu_title_settings"/>
 

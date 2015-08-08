@@ -40,7 +40,7 @@ import java.io.IOException;
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
+public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener {
 
     private static final String TAG = MapManager.class.getSimpleName();
     private static final String USGS_TOPO_URL = "http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
@@ -97,6 +97,7 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
         mMap.setOnMapClickListener(this);
+        mMap.setOnMapLongClickListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnInfoWindowClickListener(this);
 
@@ -107,6 +108,11 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
 
     @Override
     public void onMapClick(LatLng latLng) {
+
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
         Log.d(TAG, "Map clicked at location: " + latLng);
         placeTemporaryPin(latLng);
     }

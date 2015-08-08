@@ -18,6 +18,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.jwoolston.huntinglogger.dialog.DialogLegalNotices;
 import com.jwoolston.huntinglogger.file.ActivityFilePicker;
 import com.jwoolston.huntinglogger.mapping.MapManager;
+import com.jwoolston.huntinglogger.settings.DialogActivitiesEdit;
 import com.jwoolston.huntinglogger.settings.SettingsActivity;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 
@@ -99,8 +100,11 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
 
             startActivityForResult(i, MapManager.LOCAL_MBTILES_FILE);
             return true;
+        } else if (id == R.id.menu_activities) {
+            showActivitiesEditDialog();
+            return true;
         } else if (id == R.id.menu_settings) {
-            showSettingsFragment();
+            showSettings();
             return true;
         } else if (id == R.id.menu_legal) {
             showLegalNoticesDialog();
@@ -156,7 +160,13 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
-    private void showSettingsFragment() {
+    private void showActivitiesEditDialog() {
+        final FragmentManager fm = getSupportFragmentManager();
+        final DialogActivitiesEdit dialog = new DialogActivitiesEdit();
+        dialog.show(fm, DialogActivitiesEdit.class.getCanonicalName());
+    }
+
+    private void showSettings() {
         final Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
     }

@@ -7,6 +7,7 @@
 
     <string name="menu_title_drop_marker">Drop Marker</string>
     <string name="menu_title_map_provider">Data Provider</string>
+    <string name="menu_title_activities">Activities</string>
     <string name="menu_title_settings">Settings</string>
     <string name="menu_title_legal_notices">Legal Notices</string>
 
@@ -25,9 +26,9 @@
     <string name="dialog_legal_notices_usgs_text">This program provides the option to use mapping data provided by The National Map, a project hosted by the United States Geological Survey (USGS) of the United States Department of the Interior. All mapping data provided by their servers is the property of the United States government and must be used according to their terms of use. For more information, please see <a href="http://http://nationalmap.gov//">The National Map</a></string>
     <string name="dialog_legal_notices_nononsense_title">NoNonsense File Picker</string>
     <string name="dialog_legal_notices_nononsense_text">This program utilizes the NoNonsense File Picker (https://github.com/spacecowboy/NoNonsense-FilePicker) by GitHub user spacecowboy (https://github.com/spacecowboy). The terms of its license are included below and pertain only to the portion of this application\'s object code which comes from this library.</string>
-    <string name="preference_marker_main_categories_title">Activities</string>
-    <string name="preference_marker_main_categories_key">com.jwoolston.huntinglogger.preference.outdoor_activities.KEY</string>
-    <string name="preference_marker_main_categories_summary">Different outdoor activities used to categorize markers.</string>
+    <string name="dialog_edit_activities_title">Activities</string>
+    <string name="menu_edit_activities_action_save">Save</string>
+
     <string-array name="dialog_legal_notices_items">
         <item>Google Maps Android API</item>
         <item>USGS Mapping Data</item>
