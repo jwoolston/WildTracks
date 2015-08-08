@@ -45,6 +45,8 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
     private static final String TAG = MapManager.class.getSimpleName();
     private static final String USGS_TOPO_URL = "http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
 
+    public static final String KEY_LAST_LATITUDE = MapManager.class.getCanonicalName() + ".KEY_LAST_LATITUDE";
+    public static final String KEY_LAST_LONGITUDE = MapManager.class.getCanonicalName() + ".KEY_LAST_LONGITUDE";
     public static final String KEY_SELECTED_PROVIDER = MapManager.class.getCanonicalName() + ".KEY_SELECTED_PROVIDER";
     public static final String KEY_PROVIDER_FILE = MapManager.class.getCanonicalName() + ".KEY_PROVIDER_FILE";
     public static final String ACTION_PROVIDER_CHANGED = MapManager.class.getCanonicalName() + ".ACTION_PROVIDER_CHANGED";
@@ -76,6 +78,10 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
 
     private void initializeMap() {
         mMapFragment.getMapAsync(this);
+    }
+
+    public void onPause() {
+        if (mLastLocation != null) updateLastKnownLocationPreference();
     }
 
     @Override
@@ -175,6 +181,8 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         mMap.setOnInfoWindowClickListener(this);
 
         selectMapDataProvider();
+
+        reloadLastLocation();
     }
 
     private void selectMapDataProvider() {
@@ -259,8 +267,22 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         notifyAppNewProviderSelected();
     }
 
+    private void updateLastKnownLocationPreference() {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        preferences.edit()
+            .putFloat(MapManager.KEY_LAST_LATITUDE, (float) mLastLocation.getLatitude())
+            .putFloat(MapManager.KEY_LAST_LONGITUDE, (float) mLastLocation.getLongitude())
+            .apply();
+    }
+
     private void notifyAppNewProviderSelected() {
         final Intent intent = new Intent(MapManager.ACTION_PROVIDER_CHANGED);
         mLocalBroadcastManager.sendBroadcast(intent);
+    }
+
+    private void reloadLastLocation() {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        final LatLng position = new LatLng(preferences.getFloat(KEY_LAST_LATITUDE, 0.0f), preferences.getFloat(KEY_LAST_LONGITUDE, 0.0f));
+        recenterCamera(position, 15);
     }
 }

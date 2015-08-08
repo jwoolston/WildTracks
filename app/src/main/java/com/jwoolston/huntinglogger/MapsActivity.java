@@ -1,7 +1,10 @@
 package com.jwoolston.huntinglogger;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
@@ -13,8 +16,10 @@ import android.view.ViewTreeObserver;
 
 import com.google.android.gms.maps.SupportMapFragment;
 import com.jwoolston.huntinglogger.dialog.DialogLegalNotices;
+import com.jwoolston.huntinglogger.file.ActivityFilePicker;
 import com.jwoolston.huntinglogger.mapping.MapManager;
 import com.jwoolston.huntinglogger.settings.SettingsActivity;
+import com.nononsenseapps.filepicker.FilePickerActivity;
 
 public class MapsActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -42,13 +47,9 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public boolean onNavigateUp() {
-        if (mDrawer.isDrawerOpen(mNavigationView)) {
-            onBackPressed();
-        } else {
-            mDrawer.openDrawer(mNavigationView);
-        }
-        return false;
+    protected void onPause() {
+        super.onPause();
+        mMapManager.onPause();
     }
 
     @Override
@@ -131,6 +132,21 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.mapping_source_usgs_topo) {
             mMapManager.updateProviderPreferences(MapManager.USGS_TOPO_ONLINE, null);
             return true;
+        } else if (id == R.id.mapping_source_local_mbtiles) {
+            // We need to ask the user to select a file
+            final Intent i = new Intent(this, ActivityFilePicker.class);
+
+            // Set these depending on your use case. These are the defaults.
+            i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
+            i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, false);
+            i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_FILE);
+            i.putExtra(ActivityFilePicker.EXTRA_FILTER_EXTENSION, ".mbtiles");
+
+            // Configure initial directory by specifying a String.
+            i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
+
+            startActivityForResult(i, MapManager.LOCAL_MBTILES_FILE);
+            return true;
         } else if (id == R.id.menu_settings) {
             showSettingsFragment();
             return true;
@@ -139,5 +155,20 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == MapManager.LOCAL_MBTILES_FILE) {
+                final Uri uri = data.getData();
+                mMapManager.updateProviderPreferences(MapManager.LOCAL_MBTILES_FILE, uri.getPath());
+            } else if (requestCode == MapManager.LOCAL_CACHE_FILE) {
+                final Uri uri = data.getData();
+                mMapManager.updateProviderPreferences(MapManager.LOCAL_CACHE_FILE, uri.getPath());
+            }
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
