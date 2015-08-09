@@ -12,7 +12,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -32,7 +31,7 @@ import java.util.Set;
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class DialogActivitiesEdit extends DialogFragment implements View.OnClickListener, RecyclerView.OnItemTouchListener, Toolbar.OnMenuItemClickListener {
+public class DialogActivitiesEdit extends DialogFragment implements View.OnClickListener, Toolbar.OnMenuItemClickListener {
 
     private static final String TAG = DialogActivitiesEdit.class.getSimpleName();
 
@@ -51,6 +50,9 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
 
     private List<String> mActivityNames;
     private Map<String, Set<String>> mTypeMap;
+
+    private boolean mShowingActivityDetail = false;
+    private String mCurrentActivityDetail = null;
 
     public DialogActivitiesEdit() {
         super();
@@ -72,7 +74,6 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         reloadPreference();
 
         mRecyclerView = (RecyclerView) view.findViewById(R.id.item_list_preference_list);
-        mRecyclerView.addOnItemTouchListener(this);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mRecyclerView.setAdapter(new Adapter(mActivityNames));
@@ -82,8 +83,13 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getActivity(), "Cancelling", Toast.LENGTH_SHORT).show();
-                dismissAllowingStateLoss();
+                if (!mShowingActivityDetail) {
+                    dismissAllowingStateLoss();
+                } else {
+                    mShowingActivityDetail = false;
+                    mCurrentActivityDetail = null;
+                    mRecyclerView.setAdapter(new Adapter(mActivityNames));
+                }
             }
         });
         toolbar.inflateMenu(R.menu.menu_edit_activities);
@@ -100,19 +106,30 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         final int id = v.getId();
         if (id == R.id.fab_add_activity) {
             Toast.makeText(getActivity(), "Creating new activity", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getActivity(), "View: " + id, Toast.LENGTH_SHORT).show();
+            if (!mShowingActivityDetail) {
+                addActivity();
+            } else {
+                addSubType();
+            }
         }
     }
 
     @Override
-    public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+    public boolean onMenuItemClick(MenuItem item) {
+        final int id = item.getItemId();
+        if (id == R.id.menu_edit_activities_done) {
+            persistPreference();
+            dismiss();
+        }
         return false;
     }
 
-    @Override
-    public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+    protected void addActivity() {
 
+    }
+
+    protected void addSubType() {
+        
     }
 
     protected void reloadPreference() {
@@ -136,14 +153,14 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         editor.apply();
     }
 
-    @Override
-    public boolean onMenuItemClick(MenuItem item) {
-        final int id = item.getItemId();
-        if (id == R.id.menu_edit_activities_done) {
-            persistPreference();
-            dismiss();
+    protected void onListItemClicked(Adapter.ViewHolder holder, int position) {
+        if (!mShowingActivityDetail) {
+            mShowingActivityDetail = true;
+            mCurrentActivityDetail = mActivityNames.get(position);
+            mRecyclerView.setAdapter(new Adapter(new ArrayList<>(mTypeMap.get(mCurrentActivityDetail))));
+        } else {
+            Toast.makeText(getActivity(), "List Detail Item Clicked", Toast.LENGTH_SHORT).show();
         }
-        return false;
     }
 
     protected class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
@@ -159,6 +176,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
             // create a new view
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_activity, parent, false);
             // set the view's size, margins, paddings and layout parameters
+            view.setOnClickListener(DialogActivitiesEdit.this);
             return new ViewHolder(view);
         }
 
@@ -183,7 +201,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
             notifyItemRemoved(position);
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
+        public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             // each data item is just a string in this case
             public ImageView imgView;
             public TextView txtHeader;
@@ -191,9 +209,17 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
 
             public ViewHolder(View v) {
                 super(v);
+                v.setClickable(true);
+                v.setOnClickListener(this);
                 imgView = (ImageView) v.findViewById(R.id.icon);
                 txtHeader = (TextView) v.findViewById(R.id.firstLine);
                 txtFooter = (TextView) v.findViewById(R.id.secondLine);
+            }
+
+            @Override
+            public void onClick(View v) {
+                // Should only have one view assigned to it so don't bother checking
+                DialogActivitiesEdit.this.onListItemClicked(this, getAdapterPosition());
             }
         }
     }

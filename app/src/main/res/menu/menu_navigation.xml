@@ -7,19 +7,19 @@
         <item
             android:id="@+id/mapping_source_google_terrain"
             android:checked="true"
-            android:icon="@drawable/ic_map_white"
+            android:icon="@drawable/ic_map_white_24dp"
             android:title="@string/mapping_source_google_terrain"/>
         <item
             android:id="@+id/mapping_source_usgs_topo"
-            android:icon="@drawable/ic_map_white"
+            android:icon="@drawable/ic_map_white_24dp"
             android:title="@string/mapping_source_usgs_topo"/>
         <item
             android:id="@+id/mapping_source_local_mbtiles"
-            android:icon="@drawable/ic_map_white"
+            android:icon="@drawable/ic_map_white_24dp"
             android:title="@string/mapping_source_local_mbtiles"/>
         <item
             android:id="@+id/mapping_source_local_cache"
-            android:icon="@drawable/ic_map_white"
+            android:icon="@drawable/ic_map_white_24dp"
             android:title="@string/mapping_source_local_cache"/>
         </menu>
     </item>
