@@ -15,6 +15,6 @@
 
 
     <dimen name="user_location_marker_diameter">15dp</dimen>
-    <dimen name="user_location_max_marker_diameter">50dp</dimen>
+    <dimen name="user_location_max_marker_diameter">600dp</dimen>
     <dimen name="user_location_marker_stroke_width">2dp</dimen>
 </resources>

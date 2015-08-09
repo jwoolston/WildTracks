@@ -12,7 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.ViewTreeObserver;
 
 import com.google.android.gms.maps.SupportMapFragment;
 import com.jwoolston.huntinglogger.dialog.DialogLegalNotices;
@@ -39,6 +38,10 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         mDrawer = (DrawerLayout) findViewById(R.id.main_drawer);
         mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
         mNavigationView.setNavigationItemSelectedListener(this);
+
+        if (savedInstanceState != null) {
+            mMapManager.onRestoreFromInstanceState(savedInstanceState);
+        }
     }
 
     @Override
@@ -53,6 +56,12 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
     protected void onPause() {
         super.onPause();
         if (mMapManager != null) mMapManager.onPause();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (mMapManager != null) mMapManager.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -149,17 +158,6 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
      */
     private void setUpMap(WrappedMapFragment map) {
         mMapManager = new MapManager(getApplicationContext(), map);
-
-        //if (mLastLocation != null) mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), 15));
-
-        findViewById(R.id.map).getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                //At this point the layout is complete and the
-                //dimensions of myView and any child views are known.
-                //loadKML();
-            }
-        });
     }
 
     private void showActivitiesEditDialog() {

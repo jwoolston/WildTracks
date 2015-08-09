@@ -6,9 +6,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.graphics.RectF;
 import android.location.Location;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -32,21 +32,19 @@ public class UserLocationCircle {
     private final Paint mOutlinePaint;
     private final Paint mUncertaintyPaint;
 
-    private final RectF mMainCircleBounds;
-
     private LatLng mLastLocation;
     private float mZoom = -1;
     private float mAccuracy = 0;
     private float mHeading = -1;
+    private int mMarkerDiameter;
 
     public UserLocationCircle(@NonNull Context context, @NonNull GoogleMap map) {
         mMap = map;
-        mMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).visible(false).draggable(false));
+        mMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).visible(false).draggable(false).anchor(0.5f, 0.5f));
 
         final int diameter = context.getResources().getDimensionPixelSize(R.dimen.user_location_max_marker_diameter);
-        final int circle_diameter = context.getResources().getDimensionPixelSize(R.dimen.user_location_marker_diameter);
+        mMarkerDiameter = context.getResources().getDimensionPixelSize(R.dimen.user_location_marker_diameter);
         final int outline_stroke = context.getResources().getDimensionPixelSize(R.dimen.user_location_marker_stroke_width);
-        final float center = diameter / 2.0f;
 
         mImage = Bitmap.createBitmap(diameter, diameter, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mImage);
@@ -65,13 +63,6 @@ public class UserLocationCircle {
         mUncertaintyPaint.setStyle(Paint.Style.FILL);
         mUncertaintyPaint.setColor(context.getResources().getColor(R.color.user_location_primary_color));
         mUncertaintyPaint.setAlpha(128);
-
-        mMainCircleBounds = new RectF(
-            center - (circle_diameter / 2.0f),
-            center - (circle_diameter / 2.0f),
-            center + (circle_diameter / 2.0f),
-            center + (circle_diameter / 2.0f)
-        );
     }
 
     public void onLocationUpdate(@NonNull LatLng location) {
@@ -103,14 +94,15 @@ public class UserLocationCircle {
             // Draw the uncertainty circle
             final double meters_per_pixel = MapManager.metersPerPixel(mLastLocation.latitude, mZoom);
             final float radius = (float) (mAccuracy / meters_per_pixel);
-            mCanvas.drawCircle(mMainCircleBounds.centerX(), mMainCircleBounds.centerY(), radius, mUncertaintyPaint);
+            mCanvas.drawCircle(mCanvas.getClipBounds().centerX(), mCanvas.getClipBounds().centerY(), radius, mUncertaintyPaint);
         }
 
-        mCanvas.drawCircle(mMainCircleBounds.centerX(), mMainCircleBounds.centerY(), mMainCircleBounds.width() / 2.0f, mOutlinePaint);
-        mCanvas.drawCircle(mMainCircleBounds.centerX(), mMainCircleBounds.centerY(), mMainCircleBounds.width() / 2.0f, mMainCirclePaint);
+        mCanvas.drawCircle(mCanvas.getClipBounds().centerX(), mCanvas.getClipBounds().centerY(), mMarkerDiameter / 2.0f, mOutlinePaint);
+        mCanvas.drawCircle(mCanvas.getClipBounds().centerX(), mCanvas.getClipBounds().centerY(), mMarkerDiameter / 2.0f, mMainCirclePaint);
 
         mMarker.setIcon(getDescriptor());
         mMarker.setPosition(mLastLocation);
+        Log.d("Location", "Marker moved to: " + mLastLocation);
         if (!mMarker.isVisible()) mMarker.setVisible(true);
     }
 }

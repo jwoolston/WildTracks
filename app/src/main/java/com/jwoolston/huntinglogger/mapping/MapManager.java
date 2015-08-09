@@ -6,12 +6,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -103,7 +103,6 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
 
     @Override
     public void onUpdateMapAfterUserInteraction() {
-        Toast.makeText(mContext, "On User Interaction Complete", Toast.LENGTH_SHORT).show();
         mTrackingLocation = false;
     }
 
@@ -143,6 +142,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
 
         mUserLocationCircle = new UserLocationCircle(mContext, mMap);
         mUserLocationCircle.onLocationUpdate(savedLocation);
+        onLocationChanged(savedLocation);
         recenterCamera(savedLocation, 15);
         selectMapDataProvider();
     }
@@ -181,6 +181,14 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
 
     public void onPause() {
         if (mLocationManager != null) mLocationManager.onPause();
+    }
+
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        if (mLocationManager != null) mLocationManager.onSaveInstanceState(savedInstanceState);
+    }
+
+    public void onRestoreFromInstanceState(Bundle savedInstanceState) {
+        if (mLocationManager != null) mLocationManager.onRestoreFromInstanceState(savedInstanceState);
     }
 
     public void recenterCamera(LatLng position, float zoom) {
@@ -299,6 +307,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
         } else {
             mTempMarker.setPosition(latLng);
         }
+        Log.d(TAG, "Temp Marker Location: " + latLng);
     }
 
     public void updateProviderPreferences(int provider, String path) {
