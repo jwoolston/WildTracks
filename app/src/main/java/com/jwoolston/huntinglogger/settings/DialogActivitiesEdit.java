@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
@@ -14,7 +15,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,11 +28,10 @@ import com.jwoolston.huntinglogger.R;
 import com.jwoolston.huntinglogger.dialog.DialogEditText;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
@@ -42,14 +41,10 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
     private static final String TAG = DialogActivitiesEdit.class.getSimpleName();
 
     private static final String KEY_ACTIVITIES = DialogActivitiesEdit.class.getCanonicalName() + ".KEY_ACTIVITIES";
+    private static final String KEY_MARKERTYPES = DialogActivitiesEdit.class.getCanonicalName() + ".ACTIVITIY_MARKERTYPES.KEY";
 
-    private static final Set<String> DEFAULT_ACTIVITIES_SET = new LinkedHashSet<>();
-    static {
-        DEFAULT_ACTIVITIES_SET.add("Hiking");
-        DEFAULT_ACTIVITIES_SET.add("Hunting");
-        DEFAULT_ACTIVITIES_SET.add("Fishing");
-        DEFAULT_ACTIVITIES_SET.add("Cycling");
-    }
+    private static final String DEFAULT_ACTIVITIES_SET = "Hiking,Hunting,Fishing,Cycling";
+    private static final String DELIMETER = ",";
 
     public static final String ACTION_ACTIVITIES_UPDATED = DialogActivitiesEdit.class.getCanonicalName() + ".ACTION_ACTIVITIES_UPDATED";
 
@@ -60,28 +55,26 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
 
     private List<String> mTempList;
     private ActivitiesPreference mPreference;
-    //private List<String> mActivityNames;
-    //private Map<String, List<String>> mTypeMap;
 
     private boolean mShowingActivityDetail = false;
     private String mCurrentActivityDetail = null;
 
     public static ActivitiesPreference reloadPreference(Context context) {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        final List<String> activities = new ArrayList<>(preferences.getStringSet(KEY_ACTIVITIES, DEFAULT_ACTIVITIES_SET));
-        final Map<String, List<String>> subtypes = new HashMap<>();
-        final ActivitiesPreference preference = new ActivitiesPreference(activities, subtypes);
-        for (String activity : activities) {
-            final String activity_subtypes_key = DialogActivitiesEdit.class.getCanonicalName() + ".ACTIVITIY_SUBTASKS.KEY";
-            final String pref = preferences.getString(activity_subtypes_key, "");
-            final String[] subtypes_array = pref.split(",");
+        final String[] activities_array = preferences.getString(KEY_ACTIVITIES, DEFAULT_ACTIVITIES_SET).split(DELIMETER);
+        final List<String> activities = new ArrayList<>();
+        final Map<String, List<String>> types = new HashMap<>();
+        final ActivitiesPreference preference = new ActivitiesPreference(activities, types);
+        for (String activity : activities_array) {
+            if (!activity.isEmpty()) activities.add(activity);
+            final String activity_subtypes_key = KEY_MARKERTYPES + "." + activity;
+            final String pref = preferences.getString(activity_subtypes_key, null);
             final List<String> list = new ArrayList<>();
-            for (String s : subtypes_array) {
-                if (s.isEmpty()) continue;
-                Log.d(TAG, "Adding subtype: " + s);
-                list.add(s);
+            if (pref != null) {
+                final String[] subtypes_array = pref.split(DELIMETER);
+                Collections.addAll(list, subtypes_array);
             }
-            subtypes.put(activity, list);
+            types.put(activity, list);
         }
         return preference;
     }
@@ -90,6 +83,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         super();
     }
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
@@ -119,8 +113,8 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
                     dismissAllowingStateLoss();
                 } else {
                     toolbar.setTitle(R.string.dialog_edit_activities_title);
-                    mPreference.subtypes.get(mCurrentActivityDetail).clear();
-                    mPreference.subtypes.get(mCurrentActivityDetail).addAll(mTempList);
+                    mPreference.types.get(mCurrentActivityDetail).clear();
+                    mPreference.types.get(mCurrentActivityDetail).addAll(mTempList);
                     mTempList = null;
                     mShowingActivityDetail = false;
                     mCurrentActivityDetail = null;
@@ -141,11 +135,10 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
     public void onClick(View v) {
         final int id = v.getId();
         if (id == R.id.fab_add_activity) {
-            Toast.makeText(getActivity(), "Creating new activity", Toast.LENGTH_SHORT).show();
             if (!mShowingActivityDetail) {
                 addActivity();
             } else {
-                addSubType();
+                addMarkerType();
             }
         }
     }
@@ -162,25 +155,27 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
 
     @Override
     public void onFinishEditDialog(String input) {
-        Toast.makeText(getActivity(), "Creating new: " + input, Toast.LENGTH_SHORT).show();
         if (!mShowingActivityDetail) {
             ((Adapter) mRecyclerView.getAdapter()).add(input);
-            mPreference.subtypes.put(input, new ArrayList<String>());
+            mPreference.types.put(input, new ArrayList<String>());
+        } else {
+            ((Adapter) mRecyclerView.getAdapter()).add(input);
+            mPreference.types.get(mCurrentActivityDetail).add(input);
         }
     }
 
     protected void addActivity() {
         final FragmentManager fm = getActivity().getSupportFragmentManager();
         final DialogEditText dialog = new DialogEditText();
-        dialog.setCreateType("Activity");
+        dialog.setIsActivity(true);
         dialog.setEditTextListener(this);
         dialog.show(fm, DialogEditText.class.getCanonicalName());
     }
 
-    protected void addSubType() {
+    protected void addMarkerType() {
         final FragmentManager fm = getActivity().getSupportFragmentManager();
         final DialogEditText dialog = new DialogEditText();
-        dialog.setCreateType("Subtype");
+        dialog.setIsActivity(false);
         dialog.setEditTextListener(this);
         dialog.show(fm, DialogEditText.class.getCanonicalName());
     }
@@ -188,17 +183,19 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
     protected void persistPreference() {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
         final SharedPreferences.Editor editor = preferences.edit();
-        editor.putStringSet(KEY_ACTIVITIES, new LinkedHashSet<>(mPreference.activities));
-        StringBuilder builder;
+        final StringBuilder builder_activities = new StringBuilder();
+        StringBuilder builder_subtypes;
         for (String activity : mPreference.activities) {
-            final String activity_subtypes_key = DialogActivitiesEdit.class.getCanonicalName() + ".ACTIVITIY_SUBTASKS.KEY";
-            final List<String> list = mPreference.subtypes.get(activity);
-            builder = new StringBuilder();
+            builder_activities.append(activity).append(DELIMETER);
+            final String activity_subtypes_key = KEY_MARKERTYPES + "." + activity;
+            final List<String> list = mPreference.types.get(activity);
+            builder_subtypes = new StringBuilder();
             for (String s : list) {
-                builder.append(s).append(",");
+                builder_subtypes.append(s).append(DELIMETER);
             }
-            editor.putString(activity_subtypes_key, builder.toString());
+            editor.putString(activity_subtypes_key, builder_subtypes.toString());
         }
+        editor.putString(KEY_ACTIVITIES, builder_activities.toString());
         editor.apply();
         final Intent intent = new Intent(ACTION_ACTIVITIES_UPDATED);
         mLocalBroadcastManager.sendBroadcast(intent);
@@ -208,7 +205,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         if (!mShowingActivityDetail) {
             mShowingActivityDetail = true;
             mCurrentActivityDetail = mPreference.activities.get(position);
-            mTempList = new ArrayList<>(mPreference.subtypes.get(mCurrentActivityDetail));
+            mTempList = new ArrayList<>(mPreference.types.get(mCurrentActivityDetail));
             mRecyclerView.setAdapter(new Adapter(mTempList));
             getDialog().setTitle(mCurrentActivityDetail);
         } else {
@@ -226,9 +223,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            // create a new view
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_activity, parent, false);
-            // set the view's size, margins, paddings and layout parameters
             view.setOnClickListener(DialogActivitiesEdit.this);
             return new ViewHolder(view);
         }
@@ -282,11 +277,11 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
     public static class ActivitiesPreference {
 
         public final List<String> activities;
-        public final Map<String, List<String>> subtypes;
+        public final Map<String, List<String>> types;
 
-        public ActivitiesPreference(List<String> activities, Map<String, List<String>> subtypes) {
+        public ActivitiesPreference(List<String> activities, Map<String, List<String>> types) {
             this.activities = activities;
-            this.subtypes = subtypes;
+            this.types = types;
         }
     }
 }

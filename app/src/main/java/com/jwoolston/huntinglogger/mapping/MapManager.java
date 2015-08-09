@@ -11,11 +11,12 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -28,8 +29,11 @@ import com.google.maps.android.kml.KmlPlacemark;
 import com.google.maps.android.kml.KmlPolygon;
 import com.jwoolston.huntinglogger.R;
 import com.jwoolston.huntinglogger.dialog.DialogEditPin;
+import com.jwoolston.huntinglogger.location.LocationManager;
+import com.jwoolston.huntinglogger.settings.DialogActivitiesEdit;
 import com.jwoolston.huntinglogger.tileprovider.MapBoxOfflineTileProvider;
 import com.jwoolston.huntinglogger.tileprovider.URLCacheTileProvider;
+import com.jwoolston.huntinglogger.view.TouchableWrapper;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -40,13 +44,11 @@ import java.io.IOException;
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener {
+public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, TouchableWrapper.OnUserInteractionCompleteListener {
 
     private static final String TAG = MapManager.class.getSimpleName();
     private static final String USGS_TOPO_URL = "http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
 
-    public static final String KEY_LAST_LATITUDE = MapManager.class.getCanonicalName() + ".KEY_LAST_LATITUDE";
-    public static final String KEY_LAST_LONGITUDE = MapManager.class.getCanonicalName() + ".KEY_LAST_LONGITUDE";
     public static final String KEY_SELECTED_PROVIDER = MapManager.class.getCanonicalName() + ".KEY_SELECTED_PROVIDER";
     public static final String KEY_PROVIDER_FILE = MapManager.class.getCanonicalName() + ".KEY_PROVIDER_FILE";
     public static final String ACTION_PROVIDER_CHANGED = MapManager.class.getCanonicalName() + ".ACTION_PROVIDER_CHANGED";
@@ -58,52 +60,91 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
     public static final int DEFAULT_PROVIDER = GOOGLE_TERRAIN;
 
     private final Context mContext;
-    private final SupportMapFragment mMapFragment;
+    private final WrappedMapFragment mMapFragment;
     private final LocalBroadcastManager mLocalBroadcastManager;
     private GoogleMap mMap;
 
     private Marker mTempMarker;
 
-    private Location mLastLocation;
+    private UserLocationCircle mUserLocationCircle;
+
+    private LocationManager mLocationManager;
+    private boolean mTrackingLocation;
 
     private TileOverlay mCurrentMapTiles;
 
-    public MapManager(Context context, SupportMapFragment fragment) {
+    /**
+     *
+     * @param lat
+     * @param zoom
+     * @return
+     *
+     * @see <a href="https://groups.google.com/d/msg/google-maps-js-api-v3/hDRO4oHVSeM/osOYQYXg2oUJ">Google Groups Explanation</a>
+     */
+    public static double metersPerPixel(double lat, double zoom) {
+        return 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom);
+    }
+
+    public MapManager(Context context, WrappedMapFragment fragment) {
         mContext = context.getApplicationContext();
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(mContext);
         mLocalBroadcastManager.registerReceiver(mProviderChangedReceiver, new IntentFilter(ACTION_PROVIDER_CHANGED));
+        mLocalBroadcastManager.registerReceiver(mActivitiesUpdatedReceiver, new IntentFilter(DialogActivitiesEdit.ACTION_ACTIVITIES_UPDATED));
         mMapFragment = fragment;
+        mMapFragment.setOnUserInteractionCompleteListener(this);
+        mTrackingLocation = true;
         initializeMap();
     }
 
     @Override
-    public void onMyLocationChange(Location location) {
-        if (mLastLocation == null) {
+    public void onCameraChange(CameraPosition cameraPosition) {
+        mUserLocationCircle.onCameraUpdate(cameraPosition.zoom);
+    }
+
+    @Override
+    public void onUpdateMapAfterUserInteraction() {
+        Toast.makeText(mContext, "On User Interaction Complete", Toast.LENGTH_SHORT).show();
+        mTrackingLocation = false;
+    }
+
+    public void onLocationChanged(LatLng location) {
+        if (mTrackingLocation) {
+            recenterCamera(location, 15);
+        }
+        mUserLocationCircle.onLocationUpdate(location);
+    }
+
+    public void onLocationChanged(Location location) {
+        if (mTrackingLocation) {
             recenterCamera(new LatLng(location.getLatitude(), location.getLongitude()), 15);
         }
-        mLastLocation = location;
+        mUserLocationCircle.onLocationUpdate(location);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        mLocationManager = new LocationManager(mContext, this);
+        final LatLng savedLocation = mLocationManager.reloadLastLocation();
+
         mMap = googleMap;
-        mMap.setMyLocationEnabled(true);
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mMap.setOnMyLocationChangeListener(this);
+        mMap.setMyLocationEnabled(false);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
         mMap.getUiSettings().setCompassEnabled(true);
         mMap.getUiSettings().setAllGesturesEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
+        mMap.setOnCameraChangeListener(this);
         mMap.setOnMapClickListener(this);
         mMap.setOnMapLongClickListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnInfoWindowClickListener(this);
 
+        mUserLocationCircle = new UserLocationCircle(mContext, mMap);
+        mUserLocationCircle.onLocationUpdate(savedLocation);
+        recenterCamera(savedLocation, 15);
         selectMapDataProvider();
-
-        reloadLastLocation();
     }
 
     @Override
@@ -134,12 +175,16 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         showPinDropDialog();
     }
 
+    public void onResume() {
+        if (mLocationManager != null) mLocationManager.onResume();
+    }
+
     public void onPause() {
-        if (mLastLocation != null) updateLastKnownLocationPreference();
+        if (mLocationManager != null) mLocationManager.onPause();
     }
 
     public void recenterCamera(LatLng position, float zoom) {
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
+        if (mMap != null) mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
     }
 
     public KmlLayer loadKML(String file) {
@@ -245,12 +290,6 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         dialog.show(fm, DialogEditPin.class.getCanonicalName());
     }
 
-    private void reloadLastLocation() {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-        final LatLng position = new LatLng(preferences.getFloat(KEY_LAST_LATITUDE, 0.0f), preferences.getFloat(KEY_LAST_LONGITUDE, 0.0f));
-        recenterCamera(position, 15);
-    }
-
     private void placeTemporaryPin(LatLng latLng) {
         if (mTempMarker == null) {
             mTempMarker = mMap.addMarker(new MarkerOptions()
@@ -271,14 +310,6 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         notifyAppNewProviderSelected();
     }
 
-    private void updateLastKnownLocationPreference() {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-        preferences.edit()
-            .putFloat(MapManager.KEY_LAST_LATITUDE, (float) mLastLocation.getLatitude())
-            .putFloat(MapManager.KEY_LAST_LONGITUDE, (float) mLastLocation.getLongitude())
-            .apply();
-    }
-
     private void notifyAppNewProviderSelected() {
         final Intent intent = new Intent(MapManager.ACTION_PROVIDER_CHANGED);
         mLocalBroadcastManager.sendBroadcast(intent);
@@ -288,6 +319,13 @@ public class MapManager implements GoogleMap.OnMyLocationChangeListener, OnMapRe
         @Override
         public void onReceive(Context context, Intent intent) {
             selectMapDataProvider();
+        }
+    };
+
+    private final BroadcastReceiver mActivitiesUpdatedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
         }
     };
 }

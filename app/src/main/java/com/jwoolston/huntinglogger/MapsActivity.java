@@ -18,6 +18,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.jwoolston.huntinglogger.dialog.DialogLegalNotices;
 import com.jwoolston.huntinglogger.file.ActivityFilePicker;
 import com.jwoolston.huntinglogger.mapping.MapManager;
+import com.jwoolston.huntinglogger.mapping.WrappedMapFragment;
 import com.jwoolston.huntinglogger.settings.DialogActivitiesEdit;
 import com.jwoolston.huntinglogger.settings.SettingsActivity;
 import com.nononsenseapps.filepicker.FilePickerActivity;
@@ -45,12 +46,13 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         super.onResume();
         // Setup the map
         setUpMapIfNeeded();
+        if (mMapManager != null) mMapManager.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mMapManager.onPause();
+        if (mMapManager != null) mMapManager.onPause();
     }
 
     @Override
@@ -116,7 +118,7 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
      * installed) and the map has not already been instantiated.. This will ensure that we only ever
-     * call {@link #setUpMap(SupportMapFragment)} once when {@link #mMapManager} is not null.
+     * call {@link #setUpMap(WrappedMapFragment)} once when {@link #mMapManager} is not null.
      * <p/>
      * If it isn't installed {@link SupportMapFragment} (and
      * {@link com.google.android.gms.maps.MapView MapView}) will show a prompt for the user to
@@ -132,7 +134,7 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMapManager == null) {
             // Try to obtain the map from the SupportMapFragment.
-            final SupportMapFragment map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
+            final WrappedMapFragment map = ((WrappedMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
             // Check if we were successful in obtaining the map.
             if (map != null) {
                 setUpMap(map);
@@ -145,7 +147,7 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
      * <p/>
      * This should only be called once and when we are sure that {@link #mMapManager} is not null.
      */
-    private void setUpMap(SupportMapFragment map) {
+    private void setUpMap(WrappedMapFragment map) {
         mMapManager = new MapManager(getApplicationContext(), map);
 
         //if (mLastLocation != null) mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()), 15));

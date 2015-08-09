@@ -2,6 +2,7 @@ package com.jwoolston.huntinglogger.dialog;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.Toolbar;
 import android.view.KeyEvent;
@@ -24,20 +25,22 @@ public class DialogEditText extends DialogFragment implements TextView.OnEditorA
 
     private EditText mEditText;
     private EditTextListener mNameDialogListener;
-    private String mCreateType;
+    private boolean isActivity;
 
     public DialogEditText() {
         // Empty constructor required for DialogFragment
+        setStyle(STYLE_NORMAL, R.style.EditText_Light_Dialog_FixedSize);
     }
 
     public void setEditTextListener(EditTextListener listener) {
         mNameDialogListener = listener;
     }
 
-    public void setCreateType(String type) {
-        mCreateType = type;
+    public void setIsActivity(boolean isActivity) {
+        this.isActivity = isActivity;
     }
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
@@ -51,9 +54,9 @@ public class DialogEditText extends DialogFragment implements TextView.OnEditorA
         final View view = inflater.inflate(R.layout.dialog_edit_text, container);
         mEditText = (EditText) view.findViewById(R.id.text_field);
         mEditText.setOnEditorActionListener(this);
-        getDialog().setTitle("Create new " + mCreateType);
-
+        mEditText.setHint(isActivity ? "i.e. Hiking" : "i.e. Trailhead");
         final Toolbar toolbar = (Toolbar) view.findViewById(R.id.edit_text_toolbar);
+        toolbar.setTitle("Create new " + (isActivity ? "Activity" : "Marker Type"));
         return view;
     }
 

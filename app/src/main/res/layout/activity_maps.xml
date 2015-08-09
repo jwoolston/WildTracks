@@ -12,6 +12,7 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        class="com.jwoolston.huntinglogger.mapping.WrappedMapFragment"
         tools:context="com.jwoolston.huntinglogger.MapsActivity"/>
 
     <android.support.design.widget.NavigationView
