@@ -8,7 +8,6 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.location.Location;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
@@ -102,7 +101,6 @@ public class UserLocationCircle {
 
         mMarker.setIcon(getDescriptor());
         mMarker.setPosition(mLastLocation);
-        Log.d("Location", "Marker moved to: " + mLastLocation);
         if (!mMarker.isVisible()) mMarker.setVisible(true);
     }
 }

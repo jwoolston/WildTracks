@@ -105,7 +105,10 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         mRecyclerView.setAdapter(new Adapter(mPreference.activities));
 
         final Toolbar toolbar = (Toolbar) view.findViewById(R.id.edit_activities_toolbar);
+        toolbar.setTitle(R.string.dialog_edit_activities_title);
         toolbar.setOnMenuItemClickListener(this);
+        toolbar.inflateMenu(R.menu.menu_edit_activities);
+        toolbar.setNavigationIcon(R.drawable.ic_keyboard_backspace_white_24dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -122,9 +125,6 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
                 }
             }
         });
-        toolbar.inflateMenu(R.menu.menu_edit_activities);
-        toolbar.setNavigationIcon(R.drawable.ic_keyboard_backspace_white_24dp);
-        toolbar.setTitle(R.string.dialog_edit_activities_title);
 
         mActionButton = (FloatingActionButton) view.findViewById(R.id.fab_add_activity);
         mActionButton.setOnClickListener(this);

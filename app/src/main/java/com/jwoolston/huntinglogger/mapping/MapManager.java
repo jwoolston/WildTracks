@@ -9,6 +9,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -29,6 +30,7 @@ import com.google.maps.android.kml.KmlPlacemark;
 import com.google.maps.android.kml.KmlPolygon;
 import com.jwoolston.huntinglogger.R;
 import com.jwoolston.huntinglogger.dialog.DialogEditPin;
+import com.jwoolston.huntinglogger.fragment.FragmentEditUserMarker;
 import com.jwoolston.huntinglogger.location.LocationManager;
 import com.jwoolston.huntinglogger.settings.DialogActivitiesEdit;
 import com.jwoolston.huntinglogger.tileprovider.MapBoxOfflineTileProvider;
@@ -74,11 +76,10 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
     private TileOverlay mCurrentMapTiles;
 
     /**
-     *
      * @param lat
      * @param zoom
-     * @return
      *
+     * @return
      * @see <a href="https://groups.google.com/d/msg/google-maps-js-api-v3/hDRO4oHVSeM/osOYQYXg2oUJ">Google Groups Explanation</a>
      */
     public static double metersPerPixel(double lat, double zoom) {
@@ -132,7 +133,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
         mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
         mMap.getUiSettings().setCompassEnabled(true);
         mMap.getUiSettings().setAllGesturesEnabled(true);
-        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.getUiSettings().setZoomControlsEnabled(false);
 
         mMap.setOnCameraChangeListener(this);
         mMap.setOnMapClickListener(this);
@@ -193,6 +194,10 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
 
     public void recenterCamera(LatLng position, float zoom) {
         if (mMap != null) mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
+    }
+
+    public void recenterCamera(LatLng position) {
+        if (mMap != null) mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
     }
 
     public KmlLayer loadKML(String file) {
@@ -304,10 +309,19 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
                 .position(latLng)
                 .draggable(true)
                 .title(mContext.getString(R.string.new_marker_title)));
-        } else {
-            mTempMarker.setPosition(latLng);
         }
-        Log.d(TAG, "Temp Marker Location: " + latLng);
+        mTempMarker.setPosition(latLng);
+        final FragmentManager fm = mMapFragment.getActivity().getSupportFragmentManager();
+        final Fragment existing = fm.findFragmentByTag(FragmentEditUserMarker.class.getCanonicalName());
+        if (existing == null) {
+            final FragmentEditUserMarker fragment = new FragmentEditUserMarker();
+            fragment.setMapManager(this);
+            fragment.setMarker(mTempMarker);
+            fm.beginTransaction().add(R.id.detail_placeholder, fragment, FragmentEditUserMarker.class.getCanonicalName())
+                .setCustomAnimations(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom).commit();
+            fm.executePendingTransactions();
+        }
+        recenterCamera(latLng);
     }
 
     public void updateProviderPreferences(int provider, String path) {
