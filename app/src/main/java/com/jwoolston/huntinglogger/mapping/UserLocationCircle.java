@@ -64,6 +64,10 @@ public class UserLocationCircle {
         mUncertaintyPaint.setAlpha(128);
     }
 
+    public LatLng getLocation() {
+        return mMarker.getPosition();
+    }
+
     public void onLocationUpdate(@NonNull LatLng location) {
         mLastLocation = location;
         redraw();

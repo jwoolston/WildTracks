@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -46,7 +47,7 @@ import java.io.IOException;
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, TouchableWrapper.OnUserInteractionCompleteListener {
+public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, TouchableWrapper.OnUserInteractionCompleteListener, View.OnClickListener {
 
     private static final String TAG = MapManager.class.getSimpleName();
     private static final String USGS_TOPO_URL = "http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
@@ -351,4 +352,13 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
 
         }
     };
+
+    @Override
+    public void onClick(View v) {
+        final int id = v.getId();
+        if (id == R.id.fab_user_location) {
+            mTrackingLocation = true;
+            recenterCamera(mUserLocationCircle.getLocation());
+        }
+    }
 }
