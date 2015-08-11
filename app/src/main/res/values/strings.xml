@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Hunting Logger</string>
+    <string name="app_name">WildTracks</string>
     <string name="file_picker_name">Select Mapping File</string>
     <string name="title_activity_maps">Map</string>
 

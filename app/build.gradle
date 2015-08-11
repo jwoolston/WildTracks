@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.0 rc3"
 
     defaultConfig {
-        applicationId "com.jwoolston.huntinglogger"
+        applicationId "com.jwoolston.wildtracks"
         minSdkVersion 14
         targetSdkVersion 22
         versionCode 1

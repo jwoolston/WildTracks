@@ -142,11 +142,10 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
         mMap.setOnMarkerClickListener(this);
         mMap.setOnInfoWindowClickListener(this);
 
-        mUserLocationCircle = new UserLocationCircle(mContext, mMap);
+        selectMapDataProvider();
         mUserLocationCircle.onLocationUpdate(savedLocation);
         onLocationChanged(savedLocation);
         recenterCamera(savedLocation, 15);
-        selectMapDataProvider();
     }
 
     @Override
@@ -296,6 +295,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
                 disableGoogleMapping();
                 break;
         }
+        mUserLocationCircle = new UserLocationCircle(mContext, mMap);
     }
 
     private void showPinDropDialog() {
