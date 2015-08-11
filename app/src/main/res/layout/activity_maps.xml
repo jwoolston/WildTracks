@@ -9,7 +9,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true">
 
         <FrameLayout
             android:id="@+id/detail_placeholder"
@@ -49,7 +50,7 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:headerLayout="@layout/layout_navigation_drawer_header"
+        app:headerLayout="@layout/layout_header_navigation_drawer"
         app:menu="@menu/menu_navigation"/>
 </android.support.v4.widget.DrawerLayout>
 

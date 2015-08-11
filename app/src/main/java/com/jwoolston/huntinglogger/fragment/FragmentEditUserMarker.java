@@ -1,9 +1,11 @@
 package com.jwoolston.huntinglogger.fragment;
 
 import android.app.Activity;
+import android.content.res.ColorStateList;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -30,6 +32,9 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
     private Marker mMarker;
 
     private Toolbar mToolbar;
+    private NavigationView mNavigationView;
+
+    private int mTintColor;
 
     public FragmentEditUserMarker() {
 
@@ -51,9 +56,9 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.layout_pin_detail, container, false);
+        final View view = inflater.inflate(R.layout.layout_marker_detail, container, false);
+        mTintColor = getResources().getColor(android.R.color.holo_purple);
         mToolbar = (Toolbar) view.findViewById(R.id.detail_view_toolbar);
-        mToolbar.setBackgroundColor(getResources().getColor(android.R.color.holo_purple));
 
         mToolbar.setTitle("Edit Marker");
         mToolbar.setOnMenuItemClickListener(this);
@@ -65,6 +70,10 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
 
             }
         });
+
+        mNavigationView = (NavigationView) view.findViewById(R.id.detail_view_navigation_view);
+
+        applyTintColor();
 
         ViewTreeObserver vto = view.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -135,5 +144,22 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
 
     private void onAnimationRepeated() {
 
+    }
+
+    private void applyTintColor() {
+        mToolbar.setBackgroundColor(mTintColor);
+
+        ColorStateList textStateList = new ColorStateList(
+            new int[][]{
+                new int[]{android.R.attr.state_checked},
+                new int[]{}
+            },
+            new int[]{
+                mTintColor,
+                mTintColor
+            }
+        );
+
+        mNavigationView.setItemIconTintList(textStateList);
     }
 }

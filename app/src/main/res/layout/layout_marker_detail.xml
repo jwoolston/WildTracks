@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="@dimen/detail_view_width"
-                android:layout_height="match_parent"
-                xmlns:app="http://schemas.android.com/apk/res-auto">
+                android:layout_height="match_parent">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/detail_view_toolbar"
@@ -13,10 +13,15 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
-    <View
-        android:layout_width="match_parent"
+    <android.support.design.widget.NavigationView
+        android:id="@+id/detail_view_navigation_view"
+        android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_below="@id/detail_view_toolbar"
-        android:background="@android:color/holo_blue_bright"/>
+        android:layout_gravity="start"
+        app:headerLayout="@layout/layout_header_marker_detail"
+        app:menu="@menu/menu_edit_marker_navigation"
+        app:itemIconTint="@android:color/black"
+        />
 
 </RelativeLayout>

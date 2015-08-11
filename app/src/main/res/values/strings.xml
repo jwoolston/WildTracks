@@ -4,6 +4,7 @@
     <string name="title_activity_maps">Map</string>
 
     <string name="new_marker_title">New Marker</string>
+    <string name="marker_name_hint">Marker Name</string>
 
     <string name="menu_title_drop_marker">Drop Marker</string>
     <string name="menu_title_map_provider">Data Provider</string>

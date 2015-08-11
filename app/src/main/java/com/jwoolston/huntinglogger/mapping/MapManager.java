@@ -30,7 +30,6 @@ import com.google.maps.android.kml.KmlLayer;
 import com.google.maps.android.kml.KmlPlacemark;
 import com.google.maps.android.kml.KmlPolygon;
 import com.jwoolston.huntinglogger.R;
-import com.jwoolston.huntinglogger.dialog.DialogEditPin;
 import com.jwoolston.huntinglogger.fragment.FragmentEditUserMarker;
 import com.jwoolston.huntinglogger.location.LocationManager;
 import com.jwoolston.huntinglogger.settings.DialogActivitiesEdit;
@@ -173,7 +172,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        showPinDropDialog();
+        showMarkerEditWindow();
     }
 
     public void onResume() {
@@ -298,12 +297,6 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
         mUserLocationCircle = new UserLocationCircle(mContext, mMap);
     }
 
-    private void showPinDropDialog() {
-        final FragmentManager fm = mMapFragment.getActivity().getSupportFragmentManager();
-        final DialogEditPin dialog = new DialogEditPin();
-        dialog.show(fm, DialogEditPin.class.getCanonicalName());
-    }
-
     private void placeTemporaryPin(LatLng latLng) {
         if (mTempMarker == null) {
             mTempMarker = mMap.addMarker(new MarkerOptions()
@@ -312,6 +305,11 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
                 .title(mContext.getString(R.string.new_marker_title)));
         }
         mTempMarker.setPosition(latLng);
+        showMarkerEditWindow();
+        recenterCamera(latLng);
+    }
+
+    private void showMarkerEditWindow() {
         final FragmentManager fm = mMapFragment.getActivity().getSupportFragmentManager();
         final Fragment existing = fm.findFragmentByTag(FragmentEditUserMarker.class.getCanonicalName());
         if (existing == null) {
@@ -322,7 +320,6 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
                 .setCustomAnimations(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom).commit();
             fm.executePendingTransactions();
         }
-        recenterCamera(latLng);
     }
 
     public void updateProviderPreferences(int provider, String path) {
