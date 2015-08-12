@@ -1,25 +1,25 @@
 package com.jwoolston.huntinglogger.fragment;
 
-import android.app.Activity;
 import android.content.res.ColorStateList;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 
 import com.google.android.gms.maps.model.Marker;
 import com.jwoolston.huntinglogger.R;
 import com.jwoolston.huntinglogger.mapping.MapManager;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
@@ -28,11 +28,18 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
 
     private static final String TAG = FragmentEditUserMarker.class.getSimpleName();
 
+    private DateFormat mDateFormat;
+    private DateFormat mTimeFormat;
+
     private MapManager mMapManager;
     private Marker mMarker;
 
     private Toolbar mToolbar;
     private NavigationView mNavigationView;
+
+    private Menu mMenu;
+    private MenuItem mCreationTime;
+    private MenuItem mMarkerLocation;
 
     private int mTintColor;
 
@@ -48,14 +55,23 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         mMarker = marker;
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void updateMarkerPosition() {
+        // This is stupidly accurate (approximately 0.2 inches) but it matches google maps
+        mMarkerLocation.setTitle(String.format("%1.7f, %1.7f", mMarker.getPosition().latitude, mMarker.getPosition().longitude));
+    }
+
+    public void updateMarkerTime() {
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(System.currentTimeMillis());
+        mCreationTime.setTitle(getString(R.string.menu_creation_time_prefix, mDateFormat.format(calendar.getTime()), mTimeFormat.format(calendar.getTime())));
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mDateFormat = android.text.format.DateFormat.getDateFormat(getActivity().getApplicationContext());
+        final boolean is24Hr = android.text.format.DateFormat.is24HourFormat(getActivity().getApplicationContext());
+        mTimeFormat = new SimpleDateFormat(is24Hr ? "HH:mm:ss" : "h:mm:ss a", Locale.US);
         final View view = inflater.inflate(R.layout.layout_marker_detail, container, false);
         mTintColor = getResources().getColor(android.R.color.holo_purple);
         mToolbar = (Toolbar) view.findViewById(R.id.detail_view_toolbar);
@@ -72,21 +88,11 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         });
 
         mNavigationView = (NavigationView) view.findViewById(R.id.detail_view_navigation_view);
+        mMenu = mNavigationView.getMenu();
+        mCreationTime = mMenu.findItem(R.id.menu_creation_time);
+        mMarkerLocation = mMenu.findItem(R.id.menu_coordinates);
 
         applyTintColor();
-
-        ViewTreeObserver vto = view.getViewTreeObserver();
-        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                } else {
-                    view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                }
-                mMapManager.recenterCamera(mMarker.getPosition());
-            }
-        });
         return view;
     }
 
@@ -97,53 +103,6 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
             getFragmentManager().beginTransaction().remove(this).commit();
         }
         return false;
-    }
-
-    @Override
-    public Animation onCreateAnimation(int transit, boolean enter, int nextAnim) {
-        //Check if the superclass already created the animation
-        Animation anim = super.onCreateAnimation(transit, enter, nextAnim);
-
-        //If not, and an animation is defined, load it now
-        if (anim == null && nextAnim != 0) {
-            anim = AnimationUtils.loadAnimation(getActivity(), nextAnim);
-        }
-
-        //If there is an animation for this fragment, add a listener.
-        if (anim != null) {
-            anim.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
-                    onAnimationStarted();
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    onAnimationEnded();
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                    onAnimationRepeated();
-                }
-            });
-        } else {
-            Log.d(TAG, "No animation, can't add a listener.");
-        }
-
-        return anim;
-    }
-
-    private void onAnimationStarted() {
-
-    }
-
-    private void onAnimationEnded() {
-        mMapManager.recenterCamera(mMarker.getPosition());
-    }
-
-    private void onAnimationRepeated() {
-
     }
 
     private void applyTintColor() {

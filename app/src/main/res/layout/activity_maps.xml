@@ -7,43 +7,44 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <RelativeLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:animateLayoutChanges="true">
-
-        <FrameLayout
-            android:id="@+id/detail_placeholder"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
+        android:layout_height="match_parent">
 
         <fragment
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             class="com.jwoolston.huntinglogger.mapping.WrappedMapFragment"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_toRightOf="@id/detail_placeholder"
-            android:layout_toEndOf="@id/detail_placeholder"
             tools:context="com.jwoolston.huntinglogger.MapsActivity"/>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab_user_location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:layout_margin="16dp"
-            android:elevation="4dp"
-            android:src="@drawable/ic_my_location_white_24dp"
-            app:borderWidth="0dp" />
+        <com.jwoolston.huntinglogger.view.NonSwipeableViewPager
+            android:id="@+id/detail_pager"
+            android:layout_width="@dimen/navigation_max_width"
+            android:layout_height="match_parent"
+            android:layout_gravity="start|fill_vertical"/>
 
-    </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="fill_vertical|end">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fab_user_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_margin="16dp"
+                android:elevation="4dp"
+                android:src="@drawable/ic_my_location_white_24dp"
+                app:borderWidth="0dp"/>
+
+        </RelativeLayout>
+
+    </FrameLayout>
 
     <android.support.design.widget.NavigationView
         android:id="@+id/navigation_view"

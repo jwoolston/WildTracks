@@ -7,13 +7,20 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
+import com.ToxicBakery.viewpager.transforms.FlipVerticalTransformer;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.jwoolston.huntinglogger.dialog.DialogLegalNotices;
 import com.jwoolston.huntinglogger.file.ActivityFilePicker;
@@ -31,6 +38,8 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout mDrawer;
     private NavigationView mNavigationView;
     private FloatingActionButton mMyLocationButton;
+    private ViewPager mPager;
+    private PageAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +50,15 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
         mNavigationView.setNavigationItemSelectedListener(this);
         mMyLocationButton = (FloatingActionButton) findViewById(R.id.fab_user_location);
+
+        mAdapter = new PageAdapter(getSupportFragmentManager());
+
+        mPager = (ViewPager) findViewById(R.id.detail_pager);
+        mPager.setAdapter(mAdapter);
+        mPager.setCurrentItem(0);
+        final ViewPager.PageTransformer transformer = new FlipVerticalTransformer();
+        mPager.setPageTransformer(true, transformer);
+
         if (savedInstanceState != null) {
             if (mMapManager != null) mMapManager.onRestoreFromInstanceState(savedInstanceState);
         }
@@ -59,6 +77,15 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
     protected void onPause() {
         super.onPause();
         if (mMapManager != null) mMapManager.onPause();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mPager.getCurrentItem() == 1) {
+            mPager.setCurrentItem(0, true);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -127,6 +154,14 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         return false;
     }
 
+    public void showMarkerEditWindow() {
+        mPager.setCurrentItem(1);
+    }
+
+    public void hideMarkerEditWindow() {
+        mPager.setCurrentItem(0);
+    }
+
     /**
      * Sets up the map if it is possible to do so (i.e., the Google Play services APK is correctly
      * installed) and the map has not already been instantiated.. This will ensure that we only ever
@@ -179,5 +214,36 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         final FragmentManager fm = getSupportFragmentManager();
         final DialogLegalNotices dialog = new DialogLegalNotices();
         dialog.show(fm, DialogLegalNotices.class.getCanonicalName());
+    }
+
+    private final class PageAdapter extends FragmentStatePagerAdapter {
+
+        public PageAdapter(FragmentManager fragmentManager) {
+            super(fragmentManager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 1:
+                    return mMapManager.getEditUserMarkerFragment();
+                default:
+                    return new PlaceholderFragment();
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 5;
+        }
+
+    }
+
+    public static class PlaceholderFragment extends Fragment {
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            return inflater.inflate(R.layout.fragment_placeholder, container, false);
+        }
     }
 }

@@ -2,10 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/menu_creation_time"
-        android:title="Creation Time"
+        android:title="@string/menu_creation_time_prefix"
         android:icon="@drawable/ic_access_time_white_24dp"/>
     <item
         android:id="@+id/menu_coordinates"
-        android:title="38.3907305, -120.4976482"
-        android:icon="@drawable/ic_pin_drop_white"/>
+        android:title="@string/menu_coordinates_placeholder"
+        android:icon="@drawable/ic_place_white_24dp"/>
 </menu>

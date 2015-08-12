@@ -9,8 +9,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
@@ -29,6 +27,7 @@ import com.google.maps.android.kml.KmlContainer;
 import com.google.maps.android.kml.KmlLayer;
 import com.google.maps.android.kml.KmlPlacemark;
 import com.google.maps.android.kml.KmlPolygon;
+import com.jwoolston.huntinglogger.MapsActivity;
 import com.jwoolston.huntinglogger.R;
 import com.jwoolston.huntinglogger.fragment.FragmentEditUserMarker;
 import com.jwoolston.huntinglogger.location.LocationManager;
@@ -74,6 +73,8 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
     private boolean mTrackingLocation;
 
     private TileOverlay mCurrentMapTiles;
+
+    private FragmentEditUserMarker mFragmentEditUserMarker;
 
     /**
      * @param lat
@@ -172,7 +173,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        showMarkerEditWindow();
+
     }
 
     public void onResume() {
@@ -189,6 +190,13 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
 
     public void onRestoreFromInstanceState(Bundle savedInstanceState) {
         if (mLocationManager != null) mLocationManager.onRestoreFromInstanceState(savedInstanceState);
+    }
+
+    public FragmentEditUserMarker getEditUserMarkerFragment() {
+        if (mFragmentEditUserMarker == null) {
+            mFragmentEditUserMarker = new FragmentEditUserMarker();
+        }
+        return mFragmentEditUserMarker;
     }
 
     public void recenterCamera(LatLng position, float zoom) {
@@ -305,21 +313,20 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
                 .title(mContext.getString(R.string.new_marker_title)));
         }
         mTempMarker.setPosition(latLng);
+        mFragmentEditUserMarker.setMapManager(this);
+        mFragmentEditUserMarker.setMarker(mTempMarker);
+        mFragmentEditUserMarker.updateMarkerPosition();
+        mFragmentEditUserMarker.updateMarkerTime();
         showMarkerEditWindow();
         recenterCamera(latLng);
     }
 
     private void showMarkerEditWindow() {
-        final FragmentManager fm = mMapFragment.getActivity().getSupportFragmentManager();
-        final Fragment existing = fm.findFragmentByTag(FragmentEditUserMarker.class.getCanonicalName());
-        if (existing == null) {
-            final FragmentEditUserMarker fragment = new FragmentEditUserMarker();
-            fragment.setMapManager(this);
-            fragment.setMarker(mTempMarker);
-            fm.beginTransaction().add(R.id.detail_placeholder, fragment, FragmentEditUserMarker.class.getCanonicalName())
-                .setCustomAnimations(R.anim.abc_slide_in_bottom, R.anim.abc_slide_out_bottom).commit();
-            fm.executePendingTransactions();
-        }
+        ((MapsActivity) mMapFragment.getActivity()).showMarkerEditWindow();
+    }
+
+    private void hideMarkerEditWindow() {
+        ((MapsActivity) mMapFragment.getActivity()).hideMarkerEditWindow();
     }
 
     public void updateProviderPreferences(int provider, String path) {
