@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.jwoolston.huntinglogger.animation.SlideInTransformer;
 import com.jwoolston.huntinglogger.dialog.DialogLegalNotices;
@@ -30,10 +31,14 @@ import com.jwoolston.huntinglogger.settings.DialogActivitiesEdit;
 import com.jwoolston.huntinglogger.settings.SettingsActivity;
 import com.jwoolston.huntinglogger.view.NonSwipeableViewPager;
 import com.nononsenseapps.filepicker.FilePickerActivity;
+import io.fabric.sdk.android.Fabric;
 
-public class MapsActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MapsActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, ViewPager.OnPageChangeListener {
 
     private static final String TAG = "MapsActivity";
+
+    public static final int HIDE_ALL_WINDOWS = 0;
+    public static final int EDIT_USER_MARKER_WINDOW = 1;
 
     private MapManager mMapManager;
     private DrawerLayout mDrawer;
@@ -45,6 +50,7 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_maps);
 
         mDrawer = (DrawerLayout) findViewById(R.id.main_drawer);
