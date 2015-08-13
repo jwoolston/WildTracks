@@ -45,7 +45,7 @@ import java.io.IOException;
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, TouchableWrapper.OnUserInteractionCompleteListener, View.OnClickListener {
+public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, TouchableWrapper.OnUserInteractionCompleteListener, View.OnClickListener {
 
     private static final String TAG = MapManager.class.getSimpleName();
     private static final String USGS_TOPO_URL = "http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
@@ -137,7 +137,6 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
         mMap.getUiSettings().setZoomControlsEnabled(false);
 
         mMap.setOnCameraChangeListener(this);
-        mMap.setOnMapClickListener(this);
         mMap.setOnMapLongClickListener(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnInfoWindowClickListener(this);
@@ -146,11 +145,6 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
         mUserLocationCircle.onLocationUpdate(savedLocation);
         onLocationChanged(savedLocation);
         recenterCamera(savedLocation, 15);
-    }
-
-    @Override
-    public void onMapClick(LatLng latLng) {
-
     }
 
     @Override
@@ -174,6 +168,12 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
     @Override
     public void onInfoWindowClick(Marker marker) {
 
+    }
+
+    public void onMarkerEditWindowClosed() {
+        mMap.setPadding(0, 0, 0, 0);
+        mTempMarker.remove();
+        mTempMarker = null;
     }
 
     public void onResume() {
@@ -200,11 +200,11 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
     }
 
     public void recenterCamera(LatLng position, float zoom) {
-        if (mMap != null) mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
+        if (mMap != null) mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
     }
 
     public void recenterCamera(LatLng position) {
-        if (mMap != null) mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+        if (mMap != null) mMap.animateCamera(CameraUpdateFactory.newLatLng(position));
     }
 
     public KmlLayer loadKML(String file) {
@@ -322,6 +322,8 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMapClickListe
     }
 
     private void showMarkerEditWindow() {
+        mMap.setPadding(mMapFragment.getActivity().getResources().getDimensionPixelSize(R.dimen.detail_view_width), 0, 0, 0);
+        recenterCamera(mTempMarker.getPosition());
         ((MapsActivity) mMapFragment.getActivity()).showMarkerEditWindow();
     }
 

@@ -66,6 +66,7 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         final ViewPager.PageTransformer transformer = new SlideInTransformer();
         mPager.setPageTransformer(true, transformer);
         mPager.setScrollDurationFactor(5.0);
+        mPager.addOnPageChangeListener(this);
 
         if (savedInstanceState != null) {
             if (mMapManager != null) mMapManager.onRestoreFromInstanceState(savedInstanceState);
@@ -163,11 +164,12 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void showMarkerEditWindow() {
-        mPager.setCurrentItem(1);
+        mPager.setCurrentItem(EDIT_USER_MARKER_WINDOW);
     }
 
     public void hideMarkerEditWindow() {
-        mPager.setCurrentItem(0);
+        mPager.setCurrentItem(HIDE_ALL_WINDOWS);
+        mMapManager.onMarkerEditWindowClosed();
     }
 
     /**
@@ -224,6 +226,21 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         dialog.show(fm, DialogLegalNotices.class.getCanonicalName());
     }
 
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+        // Do nothing
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        if (position == HIDE_ALL_WINDOWS) mMapManager.onMarkerEditWindowClosed();
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+        // Do nothing
+    }
+
     private final class PageAdapter extends FragmentStatePagerAdapter {
 
         public PageAdapter(FragmentManager fragmentManager) {
@@ -233,7 +250,7 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         @Override
         public Fragment getItem(int position) {
             switch (position) {
-                case 1:
+                case EDIT_USER_MARKER_WINDOW:
                     return mMapManager.getEditUserMarkerFragment();
                 default:
                     return new PlaceholderFragment();
@@ -242,7 +259,7 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public int getCount() {
-            return 5;
+            return 2;
         }
 
     }
