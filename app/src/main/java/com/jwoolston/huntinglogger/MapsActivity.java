@@ -20,14 +20,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.ToxicBakery.viewpager.transforms.FlipVerticalTransformer;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.jwoolston.huntinglogger.animation.SlideInTransformer;
 import com.jwoolston.huntinglogger.dialog.DialogLegalNotices;
 import com.jwoolston.huntinglogger.file.ActivityFilePicker;
 import com.jwoolston.huntinglogger.mapping.MapManager;
 import com.jwoolston.huntinglogger.mapping.WrappedMapFragment;
 import com.jwoolston.huntinglogger.settings.DialogActivitiesEdit;
 import com.jwoolston.huntinglogger.settings.SettingsActivity;
+import com.jwoolston.huntinglogger.view.NonSwipeableViewPager;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 
 public class MapsActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -38,7 +39,7 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout mDrawer;
     private NavigationView mNavigationView;
     private FloatingActionButton mMyLocationButton;
-    private ViewPager mPager;
+    private NonSwipeableViewPager mPager;
     private PageAdapter mAdapter;
 
     @Override
@@ -53,11 +54,12 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
 
         mAdapter = new PageAdapter(getSupportFragmentManager());
 
-        mPager = (ViewPager) findViewById(R.id.detail_pager);
+        mPager = (NonSwipeableViewPager) findViewById(R.id.detail_pager);
         mPager.setAdapter(mAdapter);
         mPager.setCurrentItem(0);
-        final ViewPager.PageTransformer transformer = new FlipVerticalTransformer();
+        final ViewPager.PageTransformer transformer = new SlideInTransformer();
         mPager.setPageTransformer(true, transformer);
+        mPager.setScrollDurationFactor(5.0);
 
         if (savedInstanceState != null) {
             if (mMapManager != null) mMapManager.onRestoreFromInstanceState(savedInstanceState);
