@@ -15,12 +15,12 @@
         <fragment
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"
-            class="com.jwoolston.huntinglogger.mapping.WrappedMapFragment"
+            class="com.jwoolston.wildtracks.mapping.WrappedMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:context="com.jwoolston.huntinglogger.MapsActivity"/>
+            tools:context="com.jwoolston.wildtracks.MapsActivity"/>
 
-        <com.jwoolston.huntinglogger.view.NonSwipeableViewPager
+        <com.jwoolston.wildtracks.view.NonSwipeableViewPager
             android:id="@+id/detail_pager"
             android:layout_width="@dimen/navigation_max_width"
             android:layout_height="match_parent"
@@ -42,6 +42,21 @@
                 android:elevation="4dp"
                 android:src="@drawable/ic_my_location_white_24dp"
                 app:borderWidth="0dp"/>
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fab_select_layers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_above="@id/fab_user_location"
+                android:elevation="4dp"
+                android:src="@drawable/ic_layers_white_24dp"
+                app:borderWidth="0dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginBottom="0dp"/>
 
         </RelativeLayout>
 
