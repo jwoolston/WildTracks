@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -146,8 +147,12 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMapFragment.getView().getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                mMapFragment.getView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                mUserMarkerManager.reloadUserMarkers(savedLocation, 15, new Point(2 * mMapFragment.getView().getWidth(), 2 * mMapFragment.getView().getHeight()));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    mMapFragment.getView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                } else {
+                    mMapFragment.getView().getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                }
+                mUserMarkerManager.reloadUserMarkers(savedLocation, 15, new Point(mMapFragment.getView().getWidth(), mMapFragment.getView().getHeight()));
             }
         });
     }
