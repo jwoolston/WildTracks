@@ -14,10 +14,10 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.model.Marker;
 import com.jwoolston.wildtracks.MapsActivity;
 import com.jwoolston.wildtracks.R;
 import com.jwoolston.wildtracks.mapping.MapManager;
+import com.jwoolston.wildtracks.markers.UserMarker;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -35,7 +35,7 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
     private DateFormat mTimeFormat;
 
     private MapManager mMapManager;
-    private Marker mMarker;
+    private UserMarker mMarker;
 
     private Toolbar mToolbar;
     private NavigationView mNavigationView;
@@ -55,13 +55,13 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         mMapManager = manager;
     }
 
-    public void setMarker(Marker marker) {
+    public void setMarker(UserMarker marker) {
         mMarker = marker;
     }
 
     public void updateMarkerPosition() {
         // This is stupidly accurate (approximately 0.2 inches) but it matches google maps
-        mMarkerLocation.setTitle(String.format("%1.7f, %1.7f", mMarker.getPosition().latitude, mMarker.getPosition().longitude));
+        mMarkerLocation.setTitle(String.format("%1.7f, %1.7f", mMarker.getLatitude(), mMarker.getLongitude()));
     }
 
     public void updateMarkerTime() {
@@ -75,7 +75,7 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
     }
 
     public void updateMarkerName() {
-        mMarkerName.setText(mMarker.getTitle(), TextView.BufferType.EDITABLE);
+        mMarkerName.setText(mMarker.getName(), TextView.BufferType.EDITABLE);
     }
 
     @Nullable
@@ -113,7 +113,8 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
     public boolean onMenuItemClick(MenuItem item) {
         final int id = item.getItemId();
         if (id == R.id.menu_edit_marker_done) {
-            mMarker.setTitle(mMarkerName.getText().toString());
+            mMarkerName.clearFocus();
+            mMarker.setName(mMarkerName.getText().toString());
             mMapManager.saveCurrentMarker();
         }
         return false;

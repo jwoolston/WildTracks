@@ -30,8 +30,10 @@ import com.google.maps.android.kml.KmlPlacemark;
 import com.google.maps.android.kml.KmlPolygon;
 import com.jwoolston.wildtracks.MapsActivity;
 import com.jwoolston.wildtracks.R;
+import com.jwoolston.wildtracks.data.UserMarkerDatabase;
 import com.jwoolston.wildtracks.fragment.FragmentEditUserMarker;
 import com.jwoolston.wildtracks.location.LocationManager;
+import com.jwoolston.wildtracks.markers.UserMarker;
 import com.jwoolston.wildtracks.settings.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.tileprovider.MapBoxOfflineTileProvider;
 import com.jwoolston.wildtracks.tileprovider.URLCacheTileProvider;
@@ -64,9 +66,11 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     private final Context mContext;
     private final WrappedMapFragment mMapFragment;
     private final LocalBroadcastManager mLocalBroadcastManager;
+    private final UserMarkerDatabase mUserMarkerDatabase;
+
     private GoogleMap mMap;
 
-    private Marker mTempMarker;
+    private UserMarker mTempMarker;
 
     private UserLocationCircle mUserLocationCircle;
 
@@ -90,6 +94,8 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     public MapManager(Context context, WrappedMapFragment fragment) {
         mContext = context.getApplicationContext();
+        mUserMarkerDatabase = new UserMarkerDatabase(mContext);
+        mUserMarkerDatabase.open();
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(mContext);
         mLocalBroadcastManager.registerReceiver(mProviderChangedReceiver, new IntentFilter(ACTION_PROVIDER_CHANGED));
         mLocalBroadcastManager.registerReceiver(mActivitiesUpdatedReceiver, new IntentFilter(DialogActivitiesEdit.ACTION_ACTIVITIES_UPDATED));
@@ -185,13 +191,14 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     public void onMarkerEditWindowClosed() {
         mMap.setPadding(0, 0, 0, 0);
         if (mTempMarker != null) {
-            mTempMarker.remove();
+            mTempMarker.removeFromMap();
             mTempMarker = null;
         }
     }
 
     public void saveCurrentMarker() {
         Toast.makeText(mContext, "Saving marker.", Toast.LENGTH_SHORT).show();
+        mUserMarkerDatabase.addUserMarker(mTempMarker);
         mTempMarker = null;
         ((MapsActivity) mMapFragment.getActivity()).hideMarkerEditWindow();
     }
@@ -327,10 +334,12 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     private void placeTemporaryPin(LatLng latLng) {
         if (mTempMarker == null) {
-            mTempMarker = mMap.addMarker(new MarkerOptions()
+            final MarkerOptions options = new MarkerOptions()
                 .position(latLng)
                 .draggable(true)
-                .title(mContext.getString(R.string.new_marker_title)));
+                .title(mContext.getString(R.string.new_marker_title));
+            mTempMarker = new UserMarker(options);
+            mTempMarker.addToMap(mMap);
             mFragmentEditUserMarker.clearMarkerName();
         }
         mTempMarker.setPosition(latLng);

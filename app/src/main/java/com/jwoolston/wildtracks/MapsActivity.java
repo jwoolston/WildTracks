@@ -1,6 +1,7 @@
 package com.jwoolston.wildtracks;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -31,6 +33,7 @@ import com.jwoolston.wildtracks.settings.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.settings.SettingsActivity;
 import com.jwoolston.wildtracks.view.NonSwipeableViewPager;
 import com.nononsenseapps.filepicker.FilePickerActivity;
+
 import io.fabric.sdk.android.Fabric;
 
 public class MapsActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, ViewPager.OnPageChangeListener {
@@ -237,7 +240,11 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onPageSelected(int position) {
-        if (position == HIDE_ALL_WINDOWS) mMapManager.onMarkerEditWindowClosed();
+        if (position == HIDE_ALL_WINDOWS) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(mPager.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+            mMapManager.onMarkerEditWindowClosed();
+        }
     }
 
     @Override
