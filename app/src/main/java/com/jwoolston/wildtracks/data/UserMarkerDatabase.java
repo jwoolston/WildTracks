@@ -6,15 +6,19 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Point;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.jwoolston.wildtracks.location.LatLngBoundingBox;
 import com.jwoolston.wildtracks.markers.UserMarker;
+import com.jwoolston.wildtracks.util.MapUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -69,6 +73,32 @@ public class UserMarkerDatabase {
 
         final Cursor cursor = mDatabase.query(Helper.TABLE_MARKERS, ALL_COLUMNS, null, null, null, null, null);
 
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            final UserMarker marker = cursorToMarker(cursor);
+            markers.add(marker);
+            cursor.moveToNext();
+        }
+        // Make sure to close the cursor
+        cursor.close();
+        return markers;
+    }
+
+    public @NonNull List<UserMarker> getMarkersAroundLocation(LatLng location, double zoom, Point window) {
+        final List<UserMarker> markers = new ArrayList<>();
+        final LatLngBoundingBox bounds = MapUtils.calculateBoundingBox(location, zoom, window);
+        Log.d(TAG, "Searching within bounds: " + bounds);
+        final double minLatitude = bounds.getMinimumLatitude();
+        final double maxLatitude = bounds.getMaximumLatitude();
+        final double minLongitude = bounds.getMinimumLongitude();
+        final double maxLongitude = bounds.getMaximumLongitude();
+        final String select = "(" + Helper.COLUMN_LATITUDE + " BETWEEN ? AND ?) AND (" + Helper.COLUMN_LONGITUDE + " BETWEEN ? AND ?)";
+        final String[] args = new String[] {
+            Double.toString(minLatitude), Double.toString(maxLatitude), Double.toString(minLongitude), Double.toString(maxLongitude)
+        };
+        Log.d(TAG, "Searching for markers with query: " + select + ": " + Arrays.toString(args));
+        final Cursor cursor = mDatabase.query(Helper.TABLE_MARKERS, ALL_COLUMNS, select, args, null, null, null);
+        Log.d(TAG, "Cursor size: " + cursor.getCount());
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             final UserMarker marker = cursorToMarker(cursor);

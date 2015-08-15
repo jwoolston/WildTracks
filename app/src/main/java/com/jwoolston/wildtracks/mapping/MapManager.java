@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
@@ -12,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -30,10 +32,10 @@ import com.google.maps.android.kml.KmlPlacemark;
 import com.google.maps.android.kml.KmlPolygon;
 import com.jwoolston.wildtracks.MapsActivity;
 import com.jwoolston.wildtracks.R;
-import com.jwoolston.wildtracks.data.UserMarkerDatabase;
 import com.jwoolston.wildtracks.fragment.FragmentEditUserMarker;
 import com.jwoolston.wildtracks.location.LocationManager;
 import com.jwoolston.wildtracks.markers.UserMarker;
+import com.jwoolston.wildtracks.markers.UserMarkerManager;
 import com.jwoolston.wildtracks.settings.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.tileprovider.MapBoxOfflineTileProvider;
 import com.jwoolston.wildtracks.tileprovider.URLCacheTileProvider;
@@ -66,7 +68,6 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     private final Context mContext;
     private final WrappedMapFragment mMapFragment;
     private final LocalBroadcastManager mLocalBroadcastManager;
-    private final UserMarkerDatabase mUserMarkerDatabase;
 
     private GoogleMap mMap;
 
@@ -75,27 +76,16 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     private UserLocationCircle mUserLocationCircle;
 
     private LocationManager mLocationManager;
+    private UserMarkerManager mUserMarkerManager;
+
     private boolean mTrackingLocation;
 
     private TileOverlay mCurrentMapTiles;
 
     private FragmentEditUserMarker mFragmentEditUserMarker;
 
-    /**
-     * @param lat
-     * @param zoom
-     *
-     * @return
-     * @see <a href="https://groups.google.com/d/msg/google-maps-js-api-v3/hDRO4oHVSeM/osOYQYXg2oUJ">Google Groups Explanation</a>
-     */
-    public static double metersPerPixel(double lat, double zoom) {
-        return 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom);
-    }
-
     public MapManager(Context context, WrappedMapFragment fragment) {
         mContext = context.getApplicationContext();
-        mUserMarkerDatabase = new UserMarkerDatabase(mContext);
-        mUserMarkerDatabase.open();
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(mContext);
         mLocalBroadcastManager.registerReceiver(mProviderChangedReceiver, new IntentFilter(ACTION_PROVIDER_CHANGED));
         mLocalBroadcastManager.registerReceiver(mActivitiesUpdatedReceiver, new IntentFilter(DialogActivitiesEdit.ACTION_ACTIVITIES_UPDATED));
@@ -132,6 +122,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mLocationManager = new LocationManager(mContext, this);
+        mUserMarkerManager = new UserMarkerManager(mContext, this);
         final LatLng savedLocation = mLocationManager.reloadLastLocation();
 
         mMap = googleMap;
@@ -152,6 +143,13 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mUserLocationCircle.onLocationUpdate(savedLocation);
         onLocationChanged(savedLocation);
         recenterCamera(savedLocation, 15);
+        mMapFragment.getView().getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                mMapFragment.getView().getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                mUserMarkerManager.reloadUserMarkers(savedLocation, 15, new Point(2 * mMapFragment.getView().getWidth(), 2 * mMapFragment.getView().getHeight()));
+            }
+        });
     }
 
     @Override
@@ -197,8 +195,9 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     }
 
     public void saveCurrentMarker() {
+        //TODO: Make this a snackbar
         Toast.makeText(mContext, "Saving marker.", Toast.LENGTH_SHORT).show();
-        mUserMarkerDatabase.addUserMarker(mTempMarker);
+        mUserMarkerManager.addUserMarker(mTempMarker);
         mTempMarker = null;
         ((MapsActivity) mMapFragment.getActivity()).hideMarkerEditWindow();
     }
@@ -217,6 +216,15 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     public void onRestoreFromInstanceState(Bundle savedInstanceState) {
         if (mLocationManager != null) mLocationManager.onRestoreFromInstanceState(savedInstanceState);
+    }
+
+    public void updateProviderPreferences(int provider, String path) {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+        preferences.edit()
+            .putInt(MapManager.KEY_SELECTED_PROVIDER, provider)
+            .putString(MapManager.KEY_PROVIDER_FILE, path)
+            .apply();
+        notifyAppNewProviderSelected();
     }
 
     public FragmentEditUserMarker getEditUserMarkerFragment() {
@@ -355,15 +363,6 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMap.setPadding(mMapFragment.getActivity().getResources().getDimensionPixelSize(R.dimen.detail_view_width), 0, 0, 0);
         recenterCamera(mTempMarker.getPosition());
         ((MapsActivity) mMapFragment.getActivity()).showMarkerEditWindow();
-    }
-
-    public void updateProviderPreferences(int provider, String path) {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-        preferences.edit()
-            .putInt(MapManager.KEY_SELECTED_PROVIDER, provider)
-            .putString(MapManager.KEY_PROVIDER_FILE, path)
-            .apply();
-        notifyAppNewProviderSelected();
     }
 
     private void notifyAppNewProviderSelected() {

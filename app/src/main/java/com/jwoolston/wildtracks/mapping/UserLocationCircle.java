@@ -16,6 +16,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.jwoolston.wildtracks.R;
+import com.jwoolston.wildtracks.util.MapUtils;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
@@ -95,7 +96,7 @@ public class UserLocationCircle {
 
         if (mZoom >= 0) {
             // Draw the uncertainty circle
-            final double meters_per_pixel = MapManager.metersPerPixel(mLastLocation.latitude, mZoom);
+            final double meters_per_pixel = MapUtils.metersPerPixel(mLastLocation.latitude, mZoom);
             final float radius = (float) (mAccuracy / meters_per_pixel);
             mCanvas.drawCircle(mCanvas.getClipBounds().centerX(), mCanvas.getClipBounds().centerY(), radius, mUncertaintyPaint);
         }

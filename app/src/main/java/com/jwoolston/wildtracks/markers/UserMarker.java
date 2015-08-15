@@ -119,4 +119,16 @@ public class UserMarker {
     public String getNotes() {
         return mNotes;
     }
+
+    @Override
+    public String toString() {
+        return "UserMarker{" +
+            "mName='" + mName + '\'' +
+            ", mCreated=" + mCreated +
+            ", mActivity=" + mActivity +
+            ", mType=" + mType +
+            ", mIcon=" + mIcon +
+            ", mNotes='" + mNotes + '\'' +
+            '}';
+    }
 }
