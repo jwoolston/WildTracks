@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.kml.KmlContainer;
 import com.google.maps.android.kml.KmlLayer;
@@ -37,6 +38,7 @@ import com.jwoolston.wildtracks.R;
 import com.jwoolston.wildtracks.fragment.FragmentEditUserMarker;
 import com.jwoolston.wildtracks.location.LocationManager;
 import com.jwoolston.wildtracks.markers.UserMarker;
+import com.jwoolston.wildtracks.markers.UnhandledMarkerClusterManager;
 import com.jwoolston.wildtracks.markers.UserMarkerManager;
 import com.jwoolston.wildtracks.settings.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.tileprovider.MapBoxOfflineTileProvider;
@@ -53,7 +55,7 @@ import java.util.Set;
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, TouchableWrapper.OnUserInteractionCompleteListener, View.OnClickListener {
+public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnCameraChangeListener, TouchableWrapper.OnUserInteractionCompleteListener, View.OnClickListener, ClusterManager.OnClusterClickListener<UserMarker>, ClusterManager.OnClusterInfoWindowClickListener<UserMarker>, ClusterManager.OnClusterItemClickListener<UserMarker>, ClusterManager.OnClusterItemInfoWindowClickListener<UserMarker> {
 
     private static final String TAG = MapManager.class.getSimpleName();
     private static final String USGS_TOPO_URL = "http://basemap.nationalmap.gov/ArcGIS/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}";
@@ -80,7 +82,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     private LocationManager mLocationManager;
     private UserMarkerManager mUserMarkerManager;
-    private ClusterManager<UserMarker> mClusterManager;
+    private UnhandledMarkerClusterManager<UserMarker> mClusterManager;
 
     private boolean mTrackingLocation;
 
@@ -134,7 +136,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         // Build the managers
         mLocationManager = new LocationManager(mContext, this);
         mUserMarkerManager = new UserMarkerManager(mContext, this);
-        mClusterManager = new ClusterManager<>(mContext, mMap);
+        mClusterManager = new UnhandledMarkerClusterManager<>(mContext, mMap);
         final LatLng savedLocation = mLocationManager.reloadLastLocation();
 
         mMap.setMyLocationEnabled(false);
@@ -147,11 +149,16 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
         mMap.setOnCameraChangeListener(this);
         mMap.setOnMapLongClickListener(this);
-        mMap.setOnMarkerClickListener(this);
-        mMap.setOnInfoWindowClickListener(this);
+        mMap.setOnMarkerClickListener(mClusterManager);
+        mMap.setOnInfoWindowClickListener(mClusterManager);
+
+        mClusterManager.setOnClusterClickListener(this);
+        mClusterManager.setOnClusterInfoWindowClickListener(this);
+        mClusterManager.setOnClusterItemClickListener(this);
+        mClusterManager.setOnClusterItemInfoWindowClickListener(this);
+        mClusterManager.setUnhandledMarkerClickListener(this);
 
         selectMapDataProvider();
-
 
         mUserLocationCircle.onLocationUpdate(savedLocation);
         onLocationChanged(savedLocation);
@@ -193,19 +200,41 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (marker.equals(mTempMarker)) {
+        if (marker.equals(mTempMarker.getMarker())) {
             // This is the temp marker
-            Log.d(TAG, "Temporary marker clicked!");
+            Toast.makeText(mContext, "Temporary marker clicked!", Toast.LENGTH_SHORT).show();
         } else {
             // This is a saved marker
-            Log.d(TAG, "Saved marker clicked!");
+            Toast.makeText(mContext, "Saved marker clicked!", Toast.LENGTH_SHORT).show();
         }
         return false;
     }
 
     @Override
     public void onInfoWindowClick(Marker marker) {
+        Toast.makeText(mContext, "Marker info window clicked!", Toast.LENGTH_SHORT).show();
+    }
 
+    @Override
+    public boolean onClusterClick(Cluster<UserMarker> cluster) {
+        Toast.makeText(mContext, "Cluster clicked!", Toast.LENGTH_SHORT).show();
+        return false;
+    }
+
+    @Override
+    public void onClusterInfoWindowClick(Cluster<UserMarker> cluster) {
+        Toast.makeText(mContext, "Cluster info window clicked!", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public boolean onClusterItemClick(UserMarker marker) {
+        Toast.makeText(mContext, "Cluster item clicked! " + marker, Toast.LENGTH_SHORT).show();
+        return false;
+    }
+
+    @Override
+    public void onClusterItemInfoWindowClick(UserMarker marker) {
+        Toast.makeText(mContext, "Cluster item info window clicked! " + marker, Toast.LENGTH_SHORT).show();
     }
 
     public void onMarkerEditWindowClosed() {

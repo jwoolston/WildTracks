@@ -53,6 +53,10 @@ public class UserMarker implements ClusterItem {
         mMarkerOptions = null;
     }
 
+    public Marker getMarker() {
+        return mMarker;
+    }
+
     public void setPosition(LatLng position) {
         mLocation = new LatLng(position.latitude, position.longitude);
         if (mMarker != null) {
