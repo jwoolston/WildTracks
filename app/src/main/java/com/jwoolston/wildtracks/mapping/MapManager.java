@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.kml.KmlContainer;
 import com.google.maps.android.kml.KmlLayer;
 import com.google.maps.android.kml.KmlPlacemark;
@@ -47,6 +48,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Set;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
@@ -78,12 +80,14 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     private LocationManager mLocationManager;
     private UserMarkerManager mUserMarkerManager;
+    private ClusterManager<UserMarker> mClusterManager;
 
     private boolean mTrackingLocation;
 
     private TileOverlay mCurrentMapTiles;
 
     private FragmentEditUserMarker mFragmentEditUserMarker;
+    private int[] mShownActivities;
 
     public MapManager(Context context, WrappedMapFragment fragment) {
         mContext = context.getApplicationContext();
@@ -93,11 +97,14 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMapFragment = fragment;
         mMapFragment.setOnUserInteractionCompleteListener(this);
         mTrackingLocation = true;
+        mShownActivities = new int[] {-1};
         initializeMap();
     }
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
+        Log.d(TAG, "Map: " + mMap);
+        mClusterManager.onCameraChange(cameraPosition);
         mUserLocationCircle.onCameraUpdate(cameraPosition.zoom);
     }
 
@@ -122,11 +129,14 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        // Build the managers
         mLocationManager = new LocationManager(mContext, this);
         mUserMarkerManager = new UserMarkerManager(mContext, this);
+        mClusterManager = new ClusterManager<>(mContext, mMap);
         final LatLng savedLocation = mLocationManager.reloadLastLocation();
 
-        mMap = googleMap;
         mMap.setMyLocationEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
@@ -141,6 +151,8 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMap.setOnInfoWindowClickListener(this);
 
         selectMapDataProvider();
+
+
         mUserLocationCircle.onLocationUpdate(savedLocation);
         onLocationChanged(savedLocation);
         recenterCamera(savedLocation, 15);
@@ -165,6 +177,11 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
             recenterCamera(mUserLocationCircle.getLocation());
         } else if (id == R.id.fab_select_layers) {
             // Show layers
+            if (mShownActivities.length > 0) {
+                setShownActivities(new int[] {});
+            } else {
+                setShownActivities(new int[] {-1});
+            }
         }
     }
 
@@ -202,9 +219,27 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     public void saveCurrentMarker() {
         //TODO: Make this a snackbar
         Toast.makeText(mContext, "Saving marker.", Toast.LENGTH_SHORT).show();
-        mUserMarkerManager.addUserMarker(mTempMarker);
+        mUserMarkerManager.saveUserMarker(mTempMarker);
         mTempMarker = null;
         ((MapsActivity) mMapFragment.getActivity()).hideMarkerEditWindow();
+    }
+
+    public void addUserMarkers() {
+        for (int i : mShownActivities) {
+            final Set<UserMarker> markers = mUserMarkerManager.getUserMarkersForActivity(i);
+            mClusterManager.addItems(markers);
+        }
+        mClusterManager.cluster();
+    }
+
+    public void refreshDisplayedActivities() {
+        mClusterManager.clearItems();
+        addUserMarkers();
+    }
+
+    public void setShownActivities(int[] activities) {
+        mShownActivities = activities;
+        refreshDisplayedActivities();
     }
 
     public void onResume() {

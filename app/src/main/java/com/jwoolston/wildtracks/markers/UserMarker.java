@@ -4,15 +4,18 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.clustering.ClusterItem;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class UserMarker {
+public class UserMarker implements ClusterItem {
 
     private Marker mMarker;
     private MarkerOptions mMarkerOptions;
+    
 
+    private LatLng mLocation;
     private int mId = -1;
     private String mName = "";
     private long mCreated = -1;
@@ -30,6 +33,7 @@ public class UserMarker {
         mName = name;
         mMarkerOptions = new MarkerOptions();
         mMarkerOptions.position(position);
+        mLocation = new LatLng(position.latitude, position.longitude);
         mCreated = created;
         mActivity = activity;
         mType = type;
@@ -42,17 +46,25 @@ public class UserMarker {
     }
 
     public void removeFromMap() {
+        // Remove from the map
         mMarker.remove();
+        // Clear the params for handling the marker ourself
+        mMarker = null;
+        mMarkerOptions = null;
     }
 
     public void setPosition(LatLng position) {
-        //TODO: Check state (mMarker != null)
-        mMarker.setPosition(position);
+        mLocation = new LatLng(position.latitude, position.longitude);
+        if (mMarker != null) {
+            mMarker.setPosition(position);
+        } else if (mMarkerOptions != null) {
+            mMarkerOptions.position(position);
+        }
     }
 
+    @Override
     public LatLng getPosition() {
-        //TODO: Check state (mMarker != null)
-        return mMarker.getPosition();
+        return mLocation;
     }
 
     public void setId(int id) {
@@ -93,11 +105,11 @@ public class UserMarker {
     }
 
     public double getLatitude() {
-        return mMarker.getPosition().latitude;
+        return mLocation.latitude;
     }
 
     public double getLongitude() {
-        return mMarker.getPosition().longitude;
+        return mLocation.longitude;
     }
 
     public long getCreated() {

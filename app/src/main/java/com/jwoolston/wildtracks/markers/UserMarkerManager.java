@@ -3,15 +3,15 @@ package com.jwoolston.wildtracks.markers;
 import android.content.Context;
 import android.graphics.Point;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.jwoolston.wildtracks.data.UserMarkerDatabase;
 import com.jwoolston.wildtracks.mapping.MapManager;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,7 +28,7 @@ public class UserMarkerManager {
     private final MapManager mMapManager;
     private final UserMarkerDatabase mUserMarkerDatabase;
 
-    private final Map<Marker, UserMarker> mUserMarkerMap;
+    private final SparseArray<Set<UserMarker>> mUserMarkerMap;
     private final ExecutorService mLoaderService;
 
     private Future<List<UserMarker>> mCurrentFuture;
@@ -38,17 +38,39 @@ public class UserMarkerManager {
         mMapManager = manager;
         mUserMarkerDatabase = new UserMarkerDatabase(mContext);
         mUserMarkerDatabase.open();
-        mUserMarkerMap = new HashMap<>();
+        mUserMarkerMap = new SparseArray<>();
         mLoaderService = Executors.newSingleThreadExecutor();
     }
 
-    public void addUserMarker(UserMarker marker) {
+    public Set<UserMarker> getUserMarkersForActivity(int i) {
+        Set<UserMarker> set;
+        if (i >= 0) {
+            set = mUserMarkerMap.get(i);
+            if (set == null) {
+                set = new HashSet<>();
+                mUserMarkerMap.put(i, set);
+            }
+        } else {
+            set = new HashSet<>();
+            for (int index = 0; index < mUserMarkerMap.size(); ++index){
+                set.addAll(mUserMarkerMap.valueAt(index));
+            }
+        }
+        return set;
+    }
+
+    public void saveUserMarker(UserMarker marker) {
+        // Save the marker in the database
         mUserMarkerDatabase.addUserMarker(marker);
+        // Switch to having the cluster manager manage it
+        mMapManager.addUserMarkers();
+        // Remove the old self managed marker
+        marker.removeFromMap();
     }
 
     public void reloadUserMarkers(LatLng location, float zoom, Point window) {
         Log.d(TAG, "Reloading user markers around location: " + location + " Window: " + window);
-        mCurrentFuture = mLoaderService.submit(new LoaderTask(mUserMarkerDatabase, location, zoom, window));
+        mCurrentFuture = mLoaderService.submit(new LoaderTask(this, location, zoom, window));
     }
 
     public void updateVisibleMarkers(LatLng location, float zoom, Point window) {
@@ -59,13 +81,13 @@ public class UserMarkerManager {
 
         private static final String TAG = LoaderTask.class.getSimpleName();
 
-        private final UserMarkerDatabase mUserMarkerDatabase;
+        private final UserMarkerManager mUserMarkerManager;
         private final LatLng mLocation;
         private final float mZoom;
         private final Point mWindow;
 
-        private LoaderTask(UserMarkerDatabase database, LatLng location, float zoom, Point window) {
-            mUserMarkerDatabase = database;
+        private LoaderTask(UserMarkerManager manager, LatLng location, float zoom, Point window) {
+            mUserMarkerManager = manager;
             mLocation = location;
             mZoom = zoom;
             mWindow = window;
@@ -73,8 +95,18 @@ public class UserMarkerManager {
 
         @Override
         public List<UserMarker> call() throws Exception {
-            final List<UserMarker> markers = mUserMarkerDatabase.getMarkersAroundLocation(mLocation, mZoom, mWindow);
+            final List<UserMarker> markers = mUserMarkerManager.mUserMarkerDatabase.getMarkersAroundLocation(mLocation, mZoom, mWindow);
             Log.d(TAG, "Markers: " + markers);
+            final SparseArray<Set<UserMarker>> map = mUserMarkerManager.mUserMarkerMap;
+            for (UserMarker marker : markers) {
+                Set<UserMarker> set = map.get(marker.getActivity());
+                if (set == null) {
+                    set = new HashSet<>();
+                }
+                set.add(marker);
+                map.put(marker.getActivity(), set);
+            }
+            mUserMarkerManager.mMapManager.addUserMarkers();
             return markers;
         }
     }
