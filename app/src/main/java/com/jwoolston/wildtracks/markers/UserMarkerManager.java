@@ -63,7 +63,7 @@ public class UserMarkerManager {
         // Save the marker in the database
         mUserMarkerDatabase.addUserMarker(marker);
         // Switch to having the cluster manager manage it
-        mMapManager.addUserMarkers();
+        mMapManager.addUserMarker(marker);
         // Remove the old self managed marker
         marker.removeFromMap();
     }

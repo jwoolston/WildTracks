@@ -37,8 +37,8 @@ import com.jwoolston.wildtracks.MapsActivity;
 import com.jwoolston.wildtracks.R;
 import com.jwoolston.wildtracks.fragment.FragmentEditUserMarker;
 import com.jwoolston.wildtracks.location.LocationManager;
-import com.jwoolston.wildtracks.markers.UserMarker;
 import com.jwoolston.wildtracks.markers.UnhandledMarkerClusterManager;
+import com.jwoolston.wildtracks.markers.UserMarker;
 import com.jwoolston.wildtracks.markers.UserMarkerManager;
 import com.jwoolston.wildtracks.settings.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.tileprovider.MapBoxOfflineTileProvider;
@@ -105,7 +105,6 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
-        Log.d(TAG, "Map: " + mMap);
         mClusterManager.onCameraChange(cameraPosition);
         mUserLocationCircle.onCameraUpdate(cameraPosition.zoom);
     }
@@ -171,7 +170,8 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
                 } else {
                     mMapFragment.getView().getViewTreeObserver().removeGlobalOnLayoutListener(this);
                 }
-                mUserMarkerManager.reloadUserMarkers(savedLocation, 15, new Point(mMapFragment.getView().getWidth(), mMapFragment.getView().getHeight()));
+                final Point dimensions = new Point(mMapFragment.getView().getWidth(), mMapFragment.getView().getHeight());
+                mUserMarkerManager.reloadUserMarkers(savedLocation, 15, dimensions);
             }
         });
     }
@@ -200,12 +200,10 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (marker.equals(mTempMarker.getMarker())) {
+        if (mTempMarker != null && marker.equals(mTempMarker.getMarker())) {
             // This is the temp marker
             Toast.makeText(mContext, "Temporary marker clicked!", Toast.LENGTH_SHORT).show();
-        } else {
-            // This is a saved marker
-            Toast.makeText(mContext, "Saved marker clicked!", Toast.LENGTH_SHORT).show();
+            return true;
         }
         return false;
     }
@@ -256,8 +254,16 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     public void addUserMarkers() {
         for (int i : mShownActivities) {
             final Set<UserMarker> markers = mUserMarkerManager.getUserMarkersForActivity(i);
+            Log.d(TAG, "Adding user markers for activity: " + i);
+            Log.d(TAG, "Markers: " + markers);
             mClusterManager.addItems(markers);
+            mClusterManager.cluster();
         }
+        mClusterManager.cluster();
+    }
+
+    public void addUserMarker(UserMarker marker) {
+        mClusterManager.addItem(marker);
         mClusterManager.cluster();
     }
 

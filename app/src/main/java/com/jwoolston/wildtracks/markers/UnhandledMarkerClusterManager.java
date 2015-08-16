@@ -12,6 +12,8 @@ import com.google.maps.android.clustering.ClusterManager;
  */
 public class UnhandledMarkerClusterManager<T extends ClusterItem> extends ClusterManager<T> {
 
+    private static final String TAG = UnhandledMarkerClusterManager.class.getSimpleName();
+
     private GoogleMap.OnMarkerClickListener mUnhandledMarkerClickListener;
 
     public UnhandledMarkerClusterManager(Context context, GoogleMap map) {

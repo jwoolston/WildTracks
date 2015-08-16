@@ -28,6 +28,10 @@ public class UserMarker implements ClusterItem {
         mMarkerOptions = options;
     }
 
+    public UserMarker(LatLng position) {
+        mLocation = new LatLng(position.latitude, position.longitude);
+    }
+
     public UserMarker(int id, String name, LatLng position, long created, int activity, int type, int icon, String notes) {
         mId = id;
         mName = name;
