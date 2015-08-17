@@ -59,6 +59,10 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         mMarker = marker;
     }
 
+    public UserMarker getMarker() {
+        return mMarker;
+    }
+
     public void updateMarkerPosition() {
         // This is stupidly accurate (approximately 0.2 inches) but it matches google maps
         mMarkerLocation.setTitle(String.format("%1.7f, %1.7f", mMarker.getLatitude(), mMarker.getLongitude()));

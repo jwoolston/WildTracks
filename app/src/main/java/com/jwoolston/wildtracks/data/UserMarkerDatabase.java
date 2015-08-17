@@ -37,7 +37,8 @@ public class UserMarkerDatabase {
 
 
     public UserMarkerDatabase(Context context) {
-        mHelper = new Helper(context);
+        final File path = new File(Environment.getExternalStorageDirectory(), context.getString(R.string.app_name) + "/" + Helper.DATABASE_NAME);
+        mHelper = new Helper(context, path.getAbsolutePath());
     }
 
     public void open() throws SQLException {
@@ -153,8 +154,8 @@ public class UserMarkerDatabase {
             + COLUMN_ICON + " integer not null, "
             + COLUMN_NOTES + " text not null);";
 
-        private Helper(Context context) {
-            super(context, (new File(Environment.getExternalStorageDirectory(), context.getString(R.string.app_name) + "/user_markers/" +DATABASE_NAME)).getAbsolutePath(), null, DATABASE_VERSION);
+        private Helper(Context context, String path) {
+            super(context, path, null, DATABASE_VERSION);
         }
 
         @Override

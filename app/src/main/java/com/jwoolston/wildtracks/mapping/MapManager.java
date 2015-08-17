@@ -117,14 +117,14 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     public void onLocationChanged(LatLng location) {
         if (mTrackingLocation) {
-            recenterCamera(location, 15);
+            recenterCamera(location, 15, true);
         }
         mUserLocationCircle.onLocationUpdate(location);
     }
 
     public void onLocationChanged(Location location) {
         if (mTrackingLocation) {
-            recenterCamera(new LatLng(location.getLatitude(), location.getLongitude()), 15);
+            recenterCamera(new LatLng(location.getLatitude(), location.getLongitude()), 15, true);
         }
         mUserLocationCircle.onLocationUpdate(location);
     }
@@ -163,7 +163,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
         mUserLocationCircle.onLocationUpdate(savedLocation);
         onLocationChanged(savedLocation);
-        recenterCamera(savedLocation, 15);
+        recenterCamera(savedLocation, 15, false);
         mMapFragment.getView().getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -183,7 +183,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         final int id = v.getId();
         if (id == R.id.fab_user_location) {
             mTrackingLocation = true;
-            recenterCamera(mUserLocationCircle.getLocation());
+            recenterCamera(mUserLocationCircle.getLocation(), true);
         } else if (id == R.id.fab_select_layers) {
             // Show layers
             if (mShownActivities.length > 0) {
@@ -238,6 +238,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     public void onMarkerEditWindowClosed() {
         mMap.setPadding(0, 0, 0, 0);
+        recenterCamera(mFragmentEditUserMarker.getMarker().getPosition(), true);
         if (mTempMarker != null) {
             mTempMarker.removeFromMap();
             mTempMarker = null;
@@ -310,12 +311,24 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         return mFragmentEditUserMarker;
     }
 
-    public void recenterCamera(LatLng position, float zoom) {
-        if (mMap != null) mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
+    public void recenterCamera(LatLng position, float zoom, boolean animate) {
+        if (mMap != null) {
+            if (animate) {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
+            } else {
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, zoom));
+            }
+        }
     }
 
-    public void recenterCamera(LatLng position) {
-        if (mMap != null) mMap.animateCamera(CameraUpdateFactory.newLatLng(position));
+    public void recenterCamera(LatLng position, boolean animate) {
+        if (mMap != null) {
+            if (animate) {
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(position));
+            } else {
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+            }
+        }
     }
 
     public KmlLayer loadKML(String file) {
@@ -428,7 +441,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         }
         mTempMarker.setPosition(latLng);
         showMarkerEditWindow(mTempMarker, false, true);
-        recenterCamera(latLng);
+        recenterCamera(latLng, true);
     }
 
     private void showMarkerEditWindow(UserMarker marker, boolean showName, boolean updateTime) {
@@ -438,7 +451,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mFragmentEditUserMarker.updateMarkerPosition();
         mFragmentEditUserMarker.updateMarkerTime(updateTime);
         if (showName) mFragmentEditUserMarker.updateMarkerName();
-        recenterCamera(marker.getPosition());
+        recenterCamera(marker.getPosition(), true);
         ((MapsActivity) mMapFragment.getActivity()).showMarkerEditWindow();
     }
 
