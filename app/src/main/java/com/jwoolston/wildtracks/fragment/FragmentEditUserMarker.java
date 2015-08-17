@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.jwoolston.wildtracks.MapsActivity;
@@ -39,6 +40,10 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
 
     private Toolbar mToolbar;
     private EditText mMarkerName;
+    private EditText mMarkerNotes;
+
+    private Spinner mActivitySpinner;
+    private Spinner mTypeSpinner;
 
     private ImageView mCreationTimeIcon;
     private ImageView mMarkerLocationIcon;
@@ -89,6 +94,14 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         mMarkerName.setText(mMarker.getName(), TextView.BufferType.EDITABLE);
     }
 
+    public void clearMarkerNotes() {
+        mMarkerNotes.setText("", TextView.BufferType.EDITABLE);
+    }
+
+    public void updateMarkerNotes() {
+        mMarkerNotes.setText(mMarker.getNotes(), TextView.BufferType.EDITABLE);
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -113,7 +126,11 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
             }
         });
 
+        mActivitySpinner = (Spinner) view.findViewById(R.id.detail_view_activity_spinner);
+        mTypeSpinner = (Spinner) view.findViewById(R.id.detail_view_type_spinner);
+
         mMarkerName = (EditText) view.findViewById(R.id.marker_name_edit_text);
+        mMarkerNotes = (EditText) view.findViewById(R.id.marker_notes_edit_text);
         mCreationTimeIcon = (ImageView) view.findViewById(R.id.icon_marker_creation_time);
         mMarkerLocationIcon = (ImageView) view.findViewById(R.id.icon_marker_location);
         mCreationTimeText = (TextView) view.findViewById(R.id.label_marker_creation_time);
@@ -128,6 +145,7 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         final int id = item.getItemId();
         if (id == R.id.menu_edit_marker_done) {
             mMarkerName.clearFocus();
+            mMarkerNotes.clearFocus();
             mMarker.setName(mMarkerName.getText().toString());
             mMapManager.saveCurrentMarker();
         }

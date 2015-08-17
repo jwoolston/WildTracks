@@ -439,19 +439,23 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
             mTempMarker = new UserMarker(options);
             mTempMarker.addToMap(mMap);
             mFragmentEditUserMarker.clearMarkerName();
+            mFragmentEditUserMarker.clearMarkerNotes();
         }
         mTempMarker.setPosition(latLng);
         showMarkerEditWindow(mTempMarker, false, true);
         recenterCamera(latLng, true);
     }
 
-    private void showMarkerEditWindow(UserMarker marker, boolean showName, boolean updateTime) {
+    private void showMarkerEditWindow(UserMarker marker, boolean updateText, boolean updateTime) {
         mMap.setPadding(mMapFragment.getActivity().getResources().getDimensionPixelSize(R.dimen.detail_view_width), 0, 0, 0);
         mFragmentEditUserMarker.setMapManager(this);
         mFragmentEditUserMarker.setMarker(marker);
         mFragmentEditUserMarker.updateMarkerPosition();
         mFragmentEditUserMarker.updateMarkerTime(updateTime);
-        if (showName) mFragmentEditUserMarker.updateMarkerName();
+        if (updateText) {
+            mFragmentEditUserMarker.updateMarkerName();
+            mFragmentEditUserMarker.updateMarkerNotes();
+        }
         recenterCamera(marker.getPosition(), true);
         ((MapsActivity) mMapFragment.getActivity()).showMarkerEditWindow();
     }

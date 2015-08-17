@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout android:id="@+id/detail_view_container"
+                xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/detail_view_container"
                 android:layout_width="@dimen/detail_view_width"
                 android:layout_height="match_parent"
-    android:background="@color/background_material_light">
+                android:background="@color/background_material_light">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/detail_view_toolbar"
@@ -49,11 +49,36 @@
         android:background="@color/divider"
         />
 
+    <Spinner
+        android:id="@+id/detail_view_activity_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/detail_view_divider_upper"
+        android:layout_marginTop="@dimen/navigation_separator_vertical_padding">
+
+    </Spinner>
+
+    <Spinner
+        android:id="@+id/detail_view_type_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/detail_view_activity_spinner">
+
+    </Spinner>
+
+    <View
+        android:id="@+id/detail_view_divider_middle"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/detail_view_type_spinner"
+        android:background="@color/divider"
+        />
+
     <ImageView
         android:id="@+id/icon_marker_creation_time"
         android:layout_width="@dimen/navigation_icon_size"
         android:layout_height="@dimen/navigation_icon_size"
-        android:layout_below="@id/detail_view_divider_upper"
+        android:layout_below="@id/detail_view_divider_middle"
         android:layout_marginEnd="@dimen/navigation_icon_padding"
         android:layout_marginLeft="@dimen/navigation_icon_size"
         android:layout_marginRight="@dimen/navigation_icon_padding"
@@ -114,9 +139,9 @@
     <android.support.design.widget.TextInputLayout
         android:id="@+id/marker_notes_text_input_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
+        android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
+        android:layout_below="@id/detail_view_divider_lower"
         android:layout_marginBottom="@dimen/navigation_padding_bottom"
         android:layout_marginLeft="@dimen/navigation_icon_padding"
         android:layout_marginRight="@dimen/navigation_icon_padding"
