@@ -40,6 +40,7 @@ import com.jwoolston.wildtracks.location.LocationManager;
 import com.jwoolston.wildtracks.markers.UnhandledMarkerClusterManager;
 import com.jwoolston.wildtracks.markers.UserMarker;
 import com.jwoolston.wildtracks.markers.UserMarkerManager;
+import com.jwoolston.wildtracks.markers.UserMarkerRenderer;
 import com.jwoolston.wildtracks.settings.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.tileprovider.MapBoxOfflineTileProvider;
 import com.jwoolston.wildtracks.tileprovider.URLCacheTileProvider;
@@ -151,6 +152,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMap.setOnMarkerClickListener(mClusterManager);
         mMap.setOnInfoWindowClickListener(mClusterManager);
 
+        mClusterManager.setRenderer(new UserMarkerRenderer(mContext, mMap, mClusterManager));
         mClusterManager.setOnClusterClickListener(this);
         mClusterManager.setOnClusterInfoWindowClickListener(this);
         mClusterManager.setOnClusterItemClickListener(this);
@@ -226,13 +228,12 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     @Override
     public boolean onClusterItemClick(UserMarker marker) {
-        Toast.makeText(mContext, "Cluster item clicked! " + marker, Toast.LENGTH_SHORT).show();
         return false;
     }
 
     @Override
     public void onClusterItemInfoWindowClick(UserMarker marker) {
-        Toast.makeText(mContext, "Cluster item info window clicked! " + marker, Toast.LENGTH_SHORT).show();
+        showMarkerEditWindow(marker, true, false);
     }
 
     public void onMarkerEditWindowClosed() {
@@ -426,17 +427,18 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
             mFragmentEditUserMarker.clearMarkerName();
         }
         mTempMarker.setPosition(latLng);
-        mFragmentEditUserMarker.setMapManager(this);
-        mFragmentEditUserMarker.setMarker(mTempMarker);
-        mFragmentEditUserMarker.updateMarkerPosition();
-        mFragmentEditUserMarker.updateMarkerTime();
-        showMarkerEditWindow();
+        showMarkerEditWindow(mTempMarker, false, true);
         recenterCamera(latLng);
     }
 
-    private void showMarkerEditWindow() {
+    private void showMarkerEditWindow(UserMarker marker, boolean showName, boolean updateTime) {
         mMap.setPadding(mMapFragment.getActivity().getResources().getDimensionPixelSize(R.dimen.detail_view_width), 0, 0, 0);
-        recenterCamera(mTempMarker.getPosition());
+        mFragmentEditUserMarker.setMapManager(this);
+        mFragmentEditUserMarker.setMarker(marker);
+        mFragmentEditUserMarker.updateMarkerPosition();
+        mFragmentEditUserMarker.updateMarkerTime(updateTime);
+        if (showName) mFragmentEditUserMarker.updateMarkerName();
+        recenterCamera(marker.getPosition());
         ((MapsActivity) mMapFragment.getActivity()).showMarkerEditWindow();
     }
 

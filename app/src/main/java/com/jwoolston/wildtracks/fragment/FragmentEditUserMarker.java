@@ -64,10 +64,17 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         mMarkerLocation.setTitle(String.format("%1.7f, %1.7f", mMarker.getLatitude(), mMarker.getLongitude()));
     }
 
-    public void updateMarkerTime() {
-        final Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        mCreationTime.setTitle(getString(R.string.menu_creation_time_prefix, mDateFormat.format(calendar.getTime()), mTimeFormat.format(calendar.getTime())));
+    public void updateMarkerTime(boolean update) {
+        if (update) {
+            final long time = System.currentTimeMillis();
+            final Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(time);
+            mMarker.setCreated(time);
+            mCreationTime.setTitle(getString(R.string.menu_creation_time_prefix, mDateFormat.format(calendar.getTime()), mTimeFormat.format(calendar.getTime())));
+
+        } else {
+            mCreationTime.setTitle(getString(R.string.menu_creation_time_prefix, mDateFormat.format(mMarker.getCreated()), mTimeFormat.format(mMarker.getCreated())));
+        }
     }
 
     public void clearMarkerName() {

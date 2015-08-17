@@ -15,7 +15,6 @@
 
 
     <dimen name="user_location_marker_diameter">15dp</dimen>
-    <dimen name="user_location_max_marker_diameter">600dp</dimen>
     <dimen name="user_location_marker_stroke_width">2dp</dimen>
     <dimen name="detail_view_width">@dimen/navigation_max_width</dimen>
     <dimen name="detail_view_header_height">200dp</dimen>
