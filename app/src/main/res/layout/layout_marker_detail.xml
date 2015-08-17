@@ -1,17 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/detail_view_container"
                 android:layout_width="@dimen/detail_view_width"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+    android:background="@color/background_material_light">
 
-    <android.support.design.widget.NavigationView
-        android:id="@+id/detail_view_navigation_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        app:headerLayout="@layout/layout_header_marker_detail"
-        app:menu="@menu/menu_edit_marker_navigation"
-        app:itemIconTint="@android:color/black"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/detail_view_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="@android:color/holo_purple"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
+    <ImageView
+        android:id="@+id/detail_view_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/detail_view_toolbar"
+        android:adjustViewBounds="true"
+        android:src="@drawable/yosemite_topo"/>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/marker_name_text_input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/detail_view_header"
+        android:layout_marginBottom="@dimen/navigation_padding_bottom"
+        android:layout_marginLeft="@dimen/navigation_icon_padding"
+        android:layout_marginRight="@dimen/navigation_icon_padding"
+        android:layout_marginTop="@dimen/navigation_padding_bottom">
+
+        <EditText
+            android:id="@+id/marker_name_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/marker_name_hint"/>
+    </android.support.design.widget.TextInputLayout>
+
+    <View
+        android:id="@+id/detail_view_divider_upper"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/marker_name_text_input_layout"
+        android:background="@color/divider"
         />
+
+    <ImageView
+        android:id="@+id/icon_marker_creation_time"
+        android:layout_width="@dimen/navigation_icon_size"
+        android:layout_height="@dimen/navigation_icon_size"
+        android:layout_below="@id/detail_view_divider_upper"
+        android:layout_marginEnd="@dimen/navigation_icon_padding"
+        android:layout_marginLeft="@dimen/navigation_icon_size"
+        android:layout_marginRight="@dimen/navigation_icon_padding"
+        android:layout_marginStart="@dimen/navigation_icon_size"
+        android:layout_marginTop="@dimen/navigation_icon_size"
+        android:src="@drawable/ic_access_time_white_24dp"
+        android:tint="@android:color/black"/>
+
+    <TextView
+        android:id="@+id/label_marker_creation_time"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@id/icon_marker_creation_time"
+        android:layout_alignTop="@id/icon_marker_creation_time"
+        android:layout_toEndOf="@id/icon_marker_creation_time"
+        android:layout_toRightOf="@id/icon_marker_creation_time"
+        android:gravity="start|center_vertical"
+        android:labelFor="@id/icon_marker_creation_time"
+        android:text="@string/menu_creation_time_prefix"
+        android:textStyle="bold"/>
+
+    <ImageView
+        android:id="@+id/icon_marker_location"
+        android:layout_width="@dimen/navigation_icon_size"
+        android:layout_height="@dimen/navigation_icon_size"
+        android:layout_below="@id/icon_marker_creation_time"
+        android:layout_marginEnd="@dimen/navigation_icon_padding"
+        android:layout_marginLeft="@dimen/navigation_icon_size"
+        android:layout_marginRight="@dimen/navigation_icon_padding"
+        android:layout_marginStart="@dimen/navigation_icon_size"
+        android:layout_marginTop="@dimen/navigation_icon_size"
+        android:src="@drawable/ic_place_white_24dp"
+        android:tint="@android:color/black"
+        />
+
+    <TextView
+        android:id="@+id/label_marker_location"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@id/icon_marker_location"
+        android:layout_alignTop="@id/icon_marker_location"
+        android:layout_toEndOf="@id/icon_marker_location"
+        android:layout_toRightOf="@id/icon_marker_location"
+        android:gravity="start|center_vertical"
+        android:labelFor="@id/icon_marker_location"
+        android:text="@string/menu_coordinates_placeholder"
+        android:textStyle="bold"/>
+
+    <View
+        android:id="@+id/detail_view_divider_lower"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/icon_marker_location"
+        android:layout_marginTop="@dimen/navigation_icon_size"
+        android:background="@color/divider"
+        />
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/marker_notes_text_input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/navigation_padding_bottom"
+        android:layout_marginLeft="@dimen/navigation_icon_padding"
+        android:layout_marginRight="@dimen/navigation_icon_padding"
+        android:layout_marginTop="@dimen/navigation_padding_bottom">
+
+        <EditText
+            android:id="@+id/marker_notes_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/marker_notes_hint"
+            android:singleLine="false"/>
+    </android.support.design.widget.TextInputLayout>
 
 </RelativeLayout>

@@ -1,17 +1,17 @@
 package com.jwoolston.wildtracks.fragment;
 
-import android.content.res.ColorStateList;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.jwoolston.wildtracks.MapsActivity;
@@ -38,12 +38,12 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
     private UserMarker mMarker;
 
     private Toolbar mToolbar;
-    private NavigationView mNavigationView;
     private EditText mMarkerName;
 
-    private Menu mMenu;
-    private MenuItem mCreationTime;
-    private MenuItem mMarkerLocation;
+    private ImageView mCreationTimeIcon;
+    private ImageView mMarkerLocationIcon;
+    private TextView mCreationTimeText;
+    private TextView mMarkerLocationText;
 
     private int mTintColor;
 
@@ -65,7 +65,7 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
 
     public void updateMarkerPosition() {
         // This is stupidly accurate (approximately 0.2 inches) but it matches google maps
-        mMarkerLocation.setTitle(String.format("%1.7f, %1.7f", mMarker.getLatitude(), mMarker.getLongitude()));
+        mMarkerLocationText.setText(String.format("%1.7f, %1.7f", mMarker.getLatitude(), mMarker.getLongitude()));
     }
 
     public void updateMarkerTime(boolean update) {
@@ -74,10 +74,10 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
             final Calendar calendar = Calendar.getInstance();
             calendar.setTimeInMillis(time);
             mMarker.setCreated(time);
-            mCreationTime.setTitle(getString(R.string.menu_creation_time_prefix, mDateFormat.format(calendar.getTime()), mTimeFormat.format(calendar.getTime())));
+            mCreationTimeText.setText(getString(R.string.menu_creation_time_prefix, mDateFormat.format(calendar.getTime()), mTimeFormat.format(calendar.getTime())));
 
         } else {
-            mCreationTime.setTitle(getString(R.string.menu_creation_time_prefix, mDateFormat.format(mMarker.getCreated()), mTimeFormat.format(mMarker.getCreated())));
+            mCreationTimeText.setText(getString(R.string.menu_creation_time_prefix, mDateFormat.format(mMarker.getCreated()), mTimeFormat.format(mMarker.getCreated())));
         }
     }
 
@@ -97,8 +97,10 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         mTimeFormat = new SimpleDateFormat(is24Hr ? "HH:mm:ss" : "h:mm:ss a", Locale.US);
         final View view = inflater.inflate(R.layout.layout_marker_detail, container, false);
         mTintColor = getResources().getColor(android.R.color.holo_purple);
-        mToolbar = (Toolbar) view.findViewById(R.id.detail_view_toolbar);
 
+        ViewCompat.setElevation(view, getResources().getDimensionPixelSize(R.dimen.navigation_elevation));
+
+        mToolbar = (Toolbar) view.findViewById(R.id.detail_view_toolbar);
         mToolbar.setTitle("Edit Marker");
         mToolbar.setOnMenuItemClickListener(this);
         mToolbar.inflateMenu(R.menu.menu_edit_marker);
@@ -106,15 +108,16 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mMarker = null;
                 ((MapsActivity) getActivity()).hideMarkerEditWindow();
             }
         });
 
-        mNavigationView = (NavigationView) view.findViewById(R.id.detail_view_navigation_view);
-        mMarkerName = (EditText) mNavigationView.findViewById(R.id.marker_name_edit_text);
-        mMenu = mNavigationView.getMenu();
-        mCreationTime = mMenu.findItem(R.id.menu_creation_time);
-        mMarkerLocation = mMenu.findItem(R.id.menu_coordinates);
+        mMarkerName = (EditText) view.findViewById(R.id.marker_name_edit_text);
+        mCreationTimeIcon = (ImageView) view.findViewById(R.id.icon_marker_creation_time);
+        mMarkerLocationIcon = (ImageView) view.findViewById(R.id.icon_marker_location);
+        mCreationTimeText = (TextView) view.findViewById(R.id.label_marker_creation_time);
+        mMarkerLocationText = (TextView) view.findViewById(R.id.label_marker_location);
 
         applyTintColor();
         return view;
@@ -133,18 +136,7 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
 
     private void applyTintColor() {
         mToolbar.setBackgroundColor(mTintColor);
-
-        ColorStateList textStateList = new ColorStateList(
-            new int[][]{
-                new int[]{android.R.attr.state_checked},
-                new int[]{}
-            },
-            new int[]{
-                mTintColor,
-                mTintColor
-            }
-        );
-
-        mNavigationView.setItemIconTintList(textStateList);
+        mCreationTimeIcon.setColorFilter(mTintColor, PorterDuff.Mode.SRC_ATOP);
+        mMarkerLocationIcon.setColorFilter(mTintColor, PorterDuff.Mode.SRC_ATOP);
     }
 }

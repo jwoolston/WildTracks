@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
@@ -238,7 +239,8 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     public void onMarkerEditWindowClosed() {
         mMap.setPadding(0, 0, 0, 0);
-        recenterCamera(mFragmentEditUserMarker.getMarker().getPosition(), true);
+        final UserMarker marker = mFragmentEditUserMarker.getMarker();
+        if (marker != null) recenterCamera(marker.getPosition(), true);
         if (mTempMarker != null) {
             mTempMarker.removeFromMap();
             mTempMarker = null;
@@ -246,8 +248,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     }
 
     public void saveCurrentMarker() {
-        //TODO: Make this a snackbar
-        Toast.makeText(mContext, "Saving marker.", Toast.LENGTH_SHORT).show();
+        Snackbar.make(mMapFragment.getView(), "Saving marker.", Snackbar.LENGTH_SHORT).show();
         mUserMarkerManager.saveUserMarker(mTempMarker);
         mTempMarker = null;
         ((MapsActivity) mMapFragment.getActivity()).hideMarkerEditWindow();

@@ -31,6 +31,7 @@
     <string name="menu_edit_activities_action_save">Save</string>
     <string name="menu_creation_time_prefix">Created: %1$s, %2$s</string>
     <string name="menu_coordinates_placeholder">0.0, 0.0</string>
+    <string name="marker_notes_hint">Notes</string>
 
     <string-array name="dialog_legal_notices_items">
         <item>Google Maps Android API</item>
