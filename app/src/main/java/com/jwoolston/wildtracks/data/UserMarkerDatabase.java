@@ -49,9 +49,9 @@ public class UserMarkerDatabase {
         mHelper.close();
     }
 
-    public long addUserMarker(UserMarker marker) {
+    public boolean addOrUpdateUserMarker(UserMarker marker) {
+        Log.d(TAG, "Saving user marker with id: " + marker.getId());
         final ContentValues values = new ContentValues();
-        values.put(Helper.COLUMN_NAME, marker.getName());
         values.put(Helper.COLUMN_LATITUDE, marker.getLatitude());
         values.put(Helper.COLUMN_LONGITUDE, marker.getLongitude());
         values.put(Helper.COLUMN_CREATED, marker.getCreated());
@@ -59,8 +59,13 @@ public class UserMarkerDatabase {
         values.put(Helper.COLUMN_TYPE, marker.getType());
         values.put(Helper.COLUMN_ICON, marker.getIcon());
         values.put(Helper.COLUMN_NOTES, marker.getNotes());
+        values.put(Helper.COLUMN_NAME, marker.getName());
         Log.d(TAG, "Saving with content values: " + values);
-        return mDatabase.insertOrThrow(Helper.TABLE_MARKERS, null, values);
+        if (marker.getId() >= 0) {
+            return mDatabase.update(Helper.TABLE_MARKERS, values, Helper.COLUMN_ID + " = ?", new String[] {String.valueOf(marker.getId())}) == 1;
+        } else {
+            return mDatabase.insertOrThrow(Helper.TABLE_MARKERS, null, values) > -1;
+        }
     }
 
     public void deleteComment(UserMarker marker) {

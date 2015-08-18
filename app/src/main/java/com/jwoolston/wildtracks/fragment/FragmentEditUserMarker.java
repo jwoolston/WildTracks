@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -17,18 +19,21 @@ import android.widget.TextView;
 
 import com.jwoolston.wildtracks.MapsActivity;
 import com.jwoolston.wildtracks.R;
+import com.jwoolston.wildtracks.dialog.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.mapping.MapManager;
 import com.jwoolston.wildtracks.markers.UserMarker;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuItemClickListener {
+public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuItemClickListener, AdapterView.OnItemSelectedListener {
 
     private static final String TAG = FragmentEditUserMarker.class.getSimpleName();
 
@@ -45,12 +50,16 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
     private Spinner mActivitySpinner;
     private Spinner mTypeSpinner;
 
+    private ArrayAdapter<String> mActivityAdapter;
+    private ArrayAdapter<String> mTypeAdapter;
+
     private ImageView mCreationTimeIcon;
     private ImageView mMarkerLocationIcon;
     private TextView mCreationTimeText;
     private TextView mMarkerLocationText;
 
     private int mTintColor;
+    private DialogActivitiesEdit.ActivitiesPreference mActivityPreference;
 
     public FragmentEditUserMarker() {
 
@@ -127,7 +136,9 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
         });
 
         mActivitySpinner = (Spinner) view.findViewById(R.id.detail_view_activity_spinner);
+        mActivitySpinner.setOnItemSelectedListener(this);
         mTypeSpinner = (Spinner) view.findViewById(R.id.detail_view_type_spinner);
+        mTypeSpinner.setOnItemSelectedListener(this);
 
         mMarkerName = (EditText) view.findViewById(R.id.marker_name_edit_text);
         mMarkerNotes = (EditText) view.findViewById(R.id.marker_notes_edit_text);
@@ -141,15 +152,95 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
     }
 
     @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        if (isVisibleToUser) {
+            repopulateSpinners();
+        }
+        super.setUserVisibleHint(isVisibleToUser);
+    }
+
+    @Override
     public boolean onMenuItemClick(MenuItem item) {
         final int id = item.getItemId();
         if (id == R.id.menu_edit_marker_done) {
             mMarkerName.clearFocus();
             mMarkerNotes.clearFocus();
             mMarker.setName(mMarkerName.getText().toString());
-            mMapManager.saveCurrentMarker();
+            mMapManager.saveMarker(mMarker);
         }
         return false;
+    }
+
+    /**
+     * <p>Callback method to be invoked when an item in this view has been
+     * selected. This callback is invoked only when the newly selected
+     * position is different from the previously selected position or if
+     * there was no selected item.</p>
+     * <p/>
+     * Impelmenters can call getItemAtPosition(position) if they need to access the
+     * data associated with the selected item.
+     *
+     * @param parent   The AdapterView where the selection happened
+     * @param view     The view within the AdapterView that was clicked
+     * @param position The position of the view in the adapter
+     * @param id       The row id of the item that is selected
+     */
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        if (parent.getId() == mActivitySpinner.getId()) {
+            mMarker.setActivity(position);
+            updateTypeSpinner(position);
+        } else if (parent.getId() == mTypeSpinner.getId()) {
+            mMarker.setType(position);
+        }
+    }
+
+    /**
+     * Callback method to be invoked when the selection disappears from this
+     * view. The selection can disappear for instance when touch is activated
+     * or when the adapter becomes empty.
+     *
+     * @param parent The AdapterView that now contains no selected item.
+     */
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
+
+    private void repopulateSpinners() {
+        mActivityPreference = mMapManager.getActivitiesList();
+        mActivityAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, mActivityPreference.activities);
+        mActivityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mActivitySpinner.setAdapter(mActivityAdapter);
+        if (mMarker != null) {
+            final int activity = mMarker.getActivity();
+            if (activity >= 0) {
+                mActivitySpinner.setSelection(activity);
+                updateTypeSpinner(activity);
+            } else {
+                mActivitySpinner.setSelection(0);
+            }
+        }
+    }
+
+    private void updateTypeSpinner(int activity) {
+        List<String> types;
+        if (activity >= 0) {
+            final String activityName = mActivityPreference.activities.get(activity);
+            types = mActivityPreference.types.get(activityName);
+        } else {
+            types = new ArrayList<>();
+            types.add(0, "");
+        }
+        mTypeAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, types);
+        mTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mTypeSpinner.setAdapter(mTypeAdapter);
+        if (mMarker != null && activity >= 0) {
+            final int type = mMarker.getType();
+            if (type >= 0) {
+                mTypeSpinner.setSelection(type);
+            }
+        }
     }
 
     private void applyTintColor() {

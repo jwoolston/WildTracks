@@ -52,17 +52,21 @@
     <Spinner
         android:id="@+id/detail_view_activity_spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="?listPreferredItemHeight"
         android:layout_below="@id/detail_view_divider_upper"
-        android:layout_marginTop="@dimen/navigation_separator_vertical_padding">
+        android:layout_marginLeft="@dimen/navigation_icon_padding"
+        android:layout_marginRight="@dimen/navigation_icon_padding"
+        android:layout_marginTop="@dimen/navigation_padding_bottom">
 
     </Spinner>
 
     <Spinner
         android:id="@+id/detail_view_type_spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/detail_view_activity_spinner">
+        android:layout_height="?listPreferredItemHeight"
+        android:layout_below="@id/detail_view_activity_spinner"
+        android:layout_marginLeft="@dimen/navigation_icon_padding"
+        android:layout_marginRight="@dimen/navigation_icon_padding">
 
     </Spinner>
 

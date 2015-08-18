@@ -1,4 +1,4 @@
-package com.jwoolston.wildtracks.settings;
+package com.jwoolston.wildtracks.dialog;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -15,6 +15,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,7 +26,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jwoolston.wildtracks.R;
-import com.jwoolston.wildtracks.dialog.DialogEditText;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,13 +69,20 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
             if (!activity.isEmpty()) activities.add(activity);
             final String activity_subtypes_key = KEY_MARKERTYPES + "." + activity;
             final String pref = preferences.getString(activity_subtypes_key, null);
+            Log.d(TAG, "Activity: " + activity);
+            Log.d(TAG, "Marker Types Preference: " + pref);
             final List<String> list = new ArrayList<>();
+            list.add("");
             if (pref != null) {
                 final String[] subtypes_array = pref.split(DELIMETER);
                 Collections.addAll(list, subtypes_array);
+                Log.d(TAG, "Preference List: " + list);
             }
             types.put(activity, list);
         }
+        activities.add(0, "");
+        types.put(activities.get(0), new ArrayList<String>());
+        Log.d(TAG, "Types Keyset: " + preference.types.keySet());
         return preference;
     }
 

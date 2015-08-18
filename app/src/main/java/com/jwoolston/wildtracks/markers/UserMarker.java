@@ -19,8 +19,8 @@ public class UserMarker implements ClusterItem {
     private int mId = -1;
     private String mName = "";
     private long mCreated = -1;
-    private int mActivity = -1;
-    private int mType = -1;
+    private int mActivity = 0;
+    private int mType = 0;
     private int mIcon = -1;
     private String mNotes = "";
 
@@ -50,11 +50,13 @@ public class UserMarker implements ClusterItem {
     }
 
     public void removeFromMap() {
-        // Remove from the map
-        mMarker.remove();
-        // Clear the params for handling the marker ourself
-        mMarker = null;
-        mMarkerOptions = null;
+        if (mMarker != null) {
+            // Remove from the map
+            mMarker.remove();
+            // Clear the params for handling the marker ourself
+            mMarker = null;
+            mMarkerOptions = null;
+        }
     }
 
     public Marker getMarker() {
@@ -81,7 +83,7 @@ public class UserMarker implements ClusterItem {
 
     public void setName(String name) {
         mName = name;
-        mMarker.setTitle(mName);
+        if (mMarker != null) mMarker.setTitle(mName);
     }
 
     public void setCreated(long created) {

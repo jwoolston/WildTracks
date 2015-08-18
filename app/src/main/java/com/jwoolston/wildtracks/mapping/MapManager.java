@@ -36,13 +36,13 @@ import com.google.maps.android.kml.KmlPlacemark;
 import com.google.maps.android.kml.KmlPolygon;
 import com.jwoolston.wildtracks.MapsActivity;
 import com.jwoolston.wildtracks.R;
+import com.jwoolston.wildtracks.dialog.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.fragment.FragmentEditUserMarker;
 import com.jwoolston.wildtracks.location.LocationManager;
 import com.jwoolston.wildtracks.markers.UnhandledMarkerClusterManager;
 import com.jwoolston.wildtracks.markers.UserMarker;
 import com.jwoolston.wildtracks.markers.UserMarkerManager;
 import com.jwoolston.wildtracks.markers.UserMarkerRenderer;
-import com.jwoolston.wildtracks.settings.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.tileprovider.MapBoxOfflineTileProvider;
 import com.jwoolston.wildtracks.tileprovider.URLCacheTileProvider;
 import com.jwoolston.wildtracks.view.TouchableWrapper;
@@ -72,6 +72,8 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     public static final int LOCAL_CACHE_FILE = 3;
     public static final int DEFAULT_PROVIDER = GOOGLE_TERRAIN;
 
+    private final Object ACTIVITIES_LOCK = new Object();
+
     private final Context mContext;
     private final WrappedMapFragment mMapFragment;
     private final LocalBroadcastManager mLocalBroadcastManager;
@@ -93,8 +95,11 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     private FragmentEditUserMarker mFragmentEditUserMarker;
     private int[] mShownActivities;
 
+    private DialogActivitiesEdit.ActivitiesPreference mActivitiesPreference;
+
     public MapManager(Context context, WrappedMapFragment fragment) {
         mContext = context.getApplicationContext();
+        mActivitiesPreference = DialogActivitiesEdit.reloadPreference(mContext);
         mLocalBroadcastManager = LocalBroadcastManager.getInstance(mContext);
         mLocalBroadcastManager.registerReceiver(mProviderChangedReceiver, new IntentFilter(ACTION_PROVIDER_CHANGED));
         mLocalBroadcastManager.registerReceiver(mActivitiesUpdatedReceiver, new IntentFilter(DialogActivitiesEdit.ACTION_ACTIVITIES_UPDATED));
@@ -247,10 +252,12 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         }
     }
 
-    public void saveCurrentMarker() {
+    public void saveMarker(UserMarker marker) {
         Snackbar.make(mMapFragment.getView(), "Saving marker.", Snackbar.LENGTH_SHORT).show();
-        mUserMarkerManager.saveUserMarker(mTempMarker);
-        mTempMarker = null;
+        mUserMarkerManager.saveUserMarker(marker);
+        if (marker.equals(mTempMarker)) {
+            mTempMarker = null;
+        }
         ((MapsActivity) mMapFragment.getActivity()).hideMarkerEditWindow();
     }
 
@@ -278,6 +285,12 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     public void setShownActivities(int[] activities) {
         mShownActivities = activities;
         refreshDisplayedActivities();
+    }
+
+    public DialogActivitiesEdit.ActivitiesPreference getActivitiesList() {
+        synchronized (ACTIVITIES_LOCK) {
+            return mActivitiesPreference;
+        }
     }
 
     public void onResume() {
@@ -475,7 +488,9 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     private final BroadcastReceiver mActivitiesUpdatedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
+            synchronized (ACTIVITIES_LOCK) {
+                mActivitiesPreference = DialogActivitiesEdit.reloadPreference(context);
+            }
         }
     };
 }

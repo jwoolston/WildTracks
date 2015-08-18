@@ -29,7 +29,7 @@ import com.jwoolston.wildtracks.dialog.DialogLegalNotices;
 import com.jwoolston.wildtracks.file.ActivityFilePicker;
 import com.jwoolston.wildtracks.mapping.MapManager;
 import com.jwoolston.wildtracks.mapping.WrappedMapFragment;
-import com.jwoolston.wildtracks.settings.DialogActivitiesEdit;
+import com.jwoolston.wildtracks.dialog.DialogActivitiesEdit;
 import com.jwoolston.wildtracks.settings.SettingsActivity;
 import com.jwoolston.wildtracks.view.NonSwipeableViewPager;
 import com.nononsenseapps.filepicker.FilePickerActivity;
