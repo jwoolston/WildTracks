@@ -167,6 +167,8 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
             mMarkerNotes.clearFocus();
             mMarker.setName(mMarkerName.getText().toString());
             mMapManager.saveMarker(mMarker);
+        } else if (id == R.id.menu_edit_marker_delete) {
+
         }
         return false;
     }

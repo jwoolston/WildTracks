@@ -28,7 +28,11 @@ public class UserMarkerManager {
     private final MapManager mMapManager;
     private final UserMarkerDatabase mUserMarkerDatabase;
 
+    // Mapped by marker Activity to Set<UserMarker>
     private final SparseArray<Set<UserMarker>> mUserMarkerMap;
+
+    // Mapped by marker ID to Activity
+    private final SparseArray<Integer> mUserMarkerActivityMap;
     private final ExecutorService mLoaderService;
 
     private Future<List<UserMarker>> mCurrentFuture;
@@ -39,6 +43,7 @@ public class UserMarkerManager {
         mUserMarkerDatabase = new UserMarkerDatabase(mContext);
         mUserMarkerDatabase.open();
         mUserMarkerMap = new SparseArray<>();
+        mUserMarkerActivityMap = new SparseArray<>();
         mLoaderService = Executors.newSingleThreadExecutor();
     }
 
@@ -62,8 +67,25 @@ public class UserMarkerManager {
     public void saveUserMarker(UserMarker marker) {
         // Save the marker in the database
         mUserMarkerDatabase.addOrUpdateUserMarker(marker);
-        // Switch to having the cluster manager manage it
-        mMapManager.addUserMarker(marker);
+        // Check if we need to update our in memory mapping
+        if (marker.getId() >= 0) {
+            final Integer activity = mUserMarkerActivityMap.get(marker.getId());
+            if (activity != null && activity != marker.getActivity()) {
+                // This marker already exists in the map, find it and move it
+                final Set<UserMarker> original = mUserMarkerMap.get(activity);
+                original.remove(marker);
+                Set<UserMarker> newSet = mUserMarkerMap.get(marker.getActivity());
+                if (newSet == null) newSet = new HashSet<>();
+                newSet.add(marker);
+                mUserMarkerMap.put(marker.getActivity(), newSet);
+                mUserMarkerActivityMap.put(marker.getId(), marker.getActivity());
+            } else {
+                throw new RuntimeException("Marker to activity map returned a null activity when marker indicates it was saved.");
+            }
+        } else {
+            // Switch to having the cluster manager manage it
+            mMapManager.addUserMarker(marker);
+        }
         // Remove the old self managed marker if it existed
         marker.removeFromMap();
     }
@@ -98,6 +120,7 @@ public class UserMarkerManager {
             final List<UserMarker> markers = mUserMarkerManager.mUserMarkerDatabase.getMarkersAroundLocation(mLocation, mZoom, mWindow);
             Log.d(TAG, "Markers: " + markers);
             final SparseArray<Set<UserMarker>> map = mUserMarkerManager.mUserMarkerMap;
+            final SparseArray<Integer> idMap = mUserMarkerManager.mUserMarkerActivityMap;
             for (UserMarker marker : markers) {
                 Set<UserMarker> set = map.get(marker.getActivity());
                 if (set == null) {
@@ -105,6 +128,7 @@ public class UserMarkerManager {
                 }
                 set.add(marker);
                 map.put(marker.getActivity(), set);
+                idMap.put(marker.getId(), marker.getActivity());
             }
             mUserMarkerManager.mMapManager.addUserMarkers();
             return markers;
