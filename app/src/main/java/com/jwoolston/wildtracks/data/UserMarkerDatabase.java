@@ -62,16 +62,22 @@ public class UserMarkerDatabase {
         values.put(Helper.COLUMN_NAME, marker.getName());
         Log.d(TAG, "Saving with content values: " + values);
         if (marker.getId() >= 0) {
-            return mDatabase.update(Helper.TABLE_MARKERS, values, Helper.COLUMN_ID + " = ?", new String[] {String.valueOf(marker.getId())}) == 1;
+            return (mDatabase.update(Helper.TABLE_MARKERS, values, Helper.COLUMN_ID + " = ?", new String[] {String.valueOf(marker.getId())}) == 1);
         } else {
-            return mDatabase.insertOrThrow(Helper.TABLE_MARKERS, null, values) > -1;
+            final long id = mDatabase.insertOrThrow(Helper.TABLE_MARKERS, null, values);
+            if (id > -1) {
+                marker.setId(id);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
-    public void deleteComment(UserMarker marker) {
+    public void deleteUserMarker(UserMarker marker) {
         long id = marker.getId();
-        mDatabase.delete(Helper.TABLE_MARKERS, Helper.COLUMN_ID + " = " + id, null);
-        System.out.println("User marker deleted with id: " + id);
+        mDatabase.delete(Helper.TABLE_MARKERS, Helper.COLUMN_ID + " = ?", new String[] {String.valueOf(marker.getId())});
+        Log.d(TAG, "User marker deleted with id: " + id);
     }
 
     public @NonNull List<UserMarker> getAllMarkers() {

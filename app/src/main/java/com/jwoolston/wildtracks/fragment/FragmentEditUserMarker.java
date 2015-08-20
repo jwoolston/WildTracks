@@ -71,6 +71,10 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
 
     public void setMarker(UserMarker marker) {
         mMarker = marker;
+        final MenuItem item = mToolbar.getMenu().findItem(R.id.menu_edit_marker_delete);
+        final boolean enabled = mMarker.getId() >= 0;
+        item.setEnabled(enabled);
+        item.setVisible(enabled);
     }
 
     public UserMarker getMarker() {
@@ -166,9 +170,14 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
             mMarkerName.clearFocus();
             mMarkerNotes.clearFocus();
             mMarker.setName(mMarkerName.getText().toString());
+            mMarker.setNotes(mMarkerNotes.getText().toString());
             mMapManager.saveMarker(mMarker);
+            return true;
         } else if (id == R.id.menu_edit_marker_delete) {
-
+            mMarkerName.clearFocus();
+            mMarkerNotes.clearFocus();
+            mMapManager.deleteMarker(mMarker);
+            return false;
         }
         return false;
     }

@@ -73,11 +73,8 @@ public class MapsActivity extends AppCompatActivity implements NavigationView.On
         mPager.setScrollDurationFactor(5.0);
         mPager.addOnPageChangeListener(this);
 
-        if (savedInstanceState != null) {
-            if (mMapManager != null) mMapManager.onRestoreFromInstanceState(savedInstanceState);
-            mMyLocationButton.setOnClickListener(mMapManager);
-            mLayersButton.setOnClickListener(mMapManager);
-        }
+        mMyLocationButton.setOnClickListener(mMapManager);
+        mLayersButton.setOnClickListener(mMapManager);
         setUpMapIfNeeded();
     }
 

@@ -16,7 +16,7 @@ public class UserMarker implements ClusterItem {
     
 
     private LatLng mLocation;
-    private int mId = -1;
+    private long mId = -1;
     private String mName = "";
     private long mCreated = -1;
     private int mActivity = 0;
@@ -77,7 +77,7 @@ public class UserMarker implements ClusterItem {
         return mLocation;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         mId = id;
     }
 
@@ -106,7 +106,7 @@ public class UserMarker implements ClusterItem {
         mNotes = notes;
     }
 
-    public int getId() {
+    public long getId() {
         return mId;
     }
 
@@ -167,6 +167,6 @@ public class UserMarker implements ClusterItem {
 
     @Override
     public int hashCode() {
-        return mId;
+        return (int) (mId & 0xFFFF);
     }
 }

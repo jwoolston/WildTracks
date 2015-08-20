@@ -261,6 +261,12 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         ((MapsActivity) mMapFragment.getActivity()).hideMarkerEditWindow();
     }
 
+    public void deleteMarker(UserMarker marker) {
+        Snackbar.make(mMapFragment.getView(), "Deleting marker.", Snackbar.LENGTH_SHORT).show();
+        mUserMarkerManager.deleteUserMarker(marker);
+        ((MapsActivity) mMapFragment.getActivity()).hideMarkerEditWindow();
+    }
+
     public void addUserMarkers() {
         for (int i : mShownActivities) {
             final Set<UserMarker> markers = mUserMarkerManager.getUserMarkersForActivity(i);
@@ -275,6 +281,11 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     public void addUserMarker(UserMarker marker) {
         mClusterManager.addItem(marker);
         mClusterManager.cluster();
+    }
+
+    public void deleteUserMarker(UserMarker marker) {
+        //TODO: When we can remove a single item, do that instead of clearing everything.
+        refreshDisplayedActivities();
     }
 
     public void refreshDisplayedActivities() {
