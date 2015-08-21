@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Data persistance handler for {@link UserMarker}s.
+ *
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
 public class UserMarkerDatabase {
@@ -32,19 +34,27 @@ public class UserMarkerDatabase {
     private SQLiteDatabase mDatabase;
     private final Helper mHelper;
 
+    // All columns query shortcut
     private String[] ALL_COLUMNS = {Helper.COLUMN_ID, Helper.COLUMN_NAME, Helper.COLUMN_LATITUDE, Helper.COLUMN_LONGITUDE, Helper.COLUMN_CREATED,
         Helper.COLUMN_ACTIVITY, Helper.COLUMN_TYPE, Helper.COLUMN_ICON, Helper.COLUMN_NOTES};
-
 
     public UserMarkerDatabase(Context context) {
         final File path = new File(Environment.getExternalStorageDirectory(), context.getString(R.string.app_name) + "/" + Helper.DATABASE_NAME);
         mHelper = new Helper(context, path.getAbsolutePath());
     }
 
+    /**
+     * Opens the persistant data store.
+     *
+     * @throws SQLException
+     */
     public void open() throws SQLException {
         mDatabase = mHelper.getWritableDatabase();
     }
 
+    /**
+     * Closes the persistant data store.
+     */
     public void close() {
         mHelper.close();
     }
@@ -80,7 +90,8 @@ public class UserMarkerDatabase {
         Log.d(TAG, "User marker deleted with id: " + id);
     }
 
-    public @NonNull List<UserMarker> getAllMarkers() {
+    public @NonNull
+    List<UserMarker> getAllMarkers() {
         final List<UserMarker> markers = new ArrayList<>();
 
         final Cursor cursor = mDatabase.query(Helper.TABLE_MARKERS, ALL_COLUMNS, null, null, null, null, null);

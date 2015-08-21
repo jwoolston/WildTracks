@@ -5,23 +5,31 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterItem;
+import com.jwoolston.wildtracks.R;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
 public class UserMarker implements ClusterItem {
 
+    public static final int[] ICON_MAPPING = new int[] {
+        R.drawable.ic_place_white_24dp, // Unknown icon or generic marker
+        R.drawable.ic_explore_white_24dp, // i.e. Geocaching
+        R.drawable.ic_directions_bike_white_24dp, // i.e. Cycling/Mountain biking
+        R.drawable.ic_directions_run_white_24dp, // i.e. Running/Jogging
+        R.drawable.ic_directions_walk_white_24dp // i.e. Walking
+    };
+
     private Marker mMarker;
     private MarkerOptions mMarkerOptions;
     
-
     private LatLng mLocation;
     private long mId = -1;
     private String mName = "";
     private long mCreated = -1;
     private int mActivity = 0;
     private int mType = 0;
-    private int mIcon = -1;
+    private int mIcon = 0; // Default to generic marker
     private String mNotes = "";
 
     public UserMarker(MarkerOptions options) {
@@ -136,6 +144,10 @@ public class UserMarker implements ClusterItem {
 
     public int getIcon() {
         return mIcon;
+    }
+
+    public int getIconResource() {
+        return ICON_MAPPING[mIcon];
     }
 
     public String getNotes() {

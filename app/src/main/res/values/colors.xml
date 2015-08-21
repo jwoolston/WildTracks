@@ -11,4 +11,14 @@
 
     <color name="user_location_primary_color">#4285F4</color>
     <color name="user_location_stroke_color">#FFFFFF</color>
+
+    <array name="colorClusters">
+        <item>#689F38</item>
+        <item>#7CB342</item>
+        <item>#8BC34A</item>
+        <item>#9CCC65</item>
+        <item>#AED581</item>
+        <item>#C5E1A5</item>
+        <item>#DCEDC8</item>
+    </array>
 </resources>

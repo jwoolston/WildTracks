@@ -18,4 +18,7 @@
     <dimen name="user_location_marker_stroke_width">2dp</dimen>
     <dimen name="detail_view_width">@dimen/navigation_max_width</dimen>
     <dimen name="detail_view_header_height">200dp</dimen>
+    <dimen name="user_marker_dimension">72dp</dimen>
+    <dimen name="user_marker_activity_dimension">24dp</dimen>
+    <dimen name="user_marker_activity_bottom_offset">13.5dp</dimen>
 </resources>

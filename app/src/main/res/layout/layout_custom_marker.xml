@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="@dimen/user_marker_dimension"
+             android:layout_height="@dimen/user_marker_dimension"
+             android:background="@android:color/transparent">
+
+    <ImageView
+        android:id="@+id/base_marker_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:scaleType="center"
+        android:src="@drawable/user_marker_background_72dp"/>
+
+    <ImageView
+        android:id="@+id/activity_marker_image"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="13.5dp"
+        android:scaleType="center"
+        android:src="@drawable/ic_my_location_white_24dp"/>
+</FrameLayout>
