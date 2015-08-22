@@ -84,7 +84,7 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
         centerParams.bottomMargin = activityOffset;
         frame.addView(mBackgroundImage, params);
         frame.addView(mImageView, centerParams);
-        mBackgroundImage.setImageDrawable(mContext.getResources().getDrawable(R.drawable.user_marker_background_72dp));
+        mBackgroundImage.setImageDrawable(mContext.getResources().getDrawable(R.drawable.user_marker_background));
         mMarkerIconGenerator.setContentView(frame);
         mMarkerIconGenerator.setBackground(null);
 
@@ -129,7 +129,12 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
     private SparseArray<BitmapDescriptor> initializeBitmapDescriptors() {
         final SparseArray<BitmapDescriptor> descriptors = new SparseArray<>(UserMarker.ICON_MAPPING.length);
         for (int i = 0; i < UserMarker.ICON_MAPPING.length; ++i) {
-            mImageView.setImageDrawable(mContext.getResources().getDrawable(UserMarker.ICON_MAPPING[i]));
+            final int id = UserMarker.ICON_MAPPING[i];
+            if (id != 0) {
+                mImageView.setImageDrawable(mContext.getResources().getDrawable(id));
+            } else {
+                mImageView.setImageDrawable(null);
+            }
             Bitmap icon = mMarkerIconGenerator.makeIcon();
             descriptors.put(i, BitmapDescriptorFactory.fromBitmap(icon));
         }

@@ -12,7 +12,8 @@
         android:layout_alignParentTop="true"
         android:layout_marginRight="6dip"
         android:layout_marginEnd="6dip"
-        android:src="@mipmap/ic_launcher"/>
+        android:src="@mipmap/ic_launcher"
+        android:scaleType="center"/>
 
     <TextView
         android:id="@+id/firstLine"
@@ -25,6 +26,6 @@
         android:layout_toRightOf="@id/icon"
         android:layout_toEndOf="@id/icon"
         android:gravity="center_vertical"
-        android:textSize="24sp"/>
+        style="?android:attr/textAppearanceMedium"/>
 
 </RelativeLayout>

@@ -4,6 +4,8 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -25,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jwoolston.wildtracks.R;
+import com.jwoolston.wildtracks.markers.UserMarker;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,8 +45,9 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
     private static final String KEY_ACTIVITIES = DialogActivitiesEdit.class.getCanonicalName() + ".KEY_ACTIVITIES";
     private static final String KEY_MARKERTYPES = DialogActivitiesEdit.class.getCanonicalName() + ".ACTIVITIY_MARKERTYPES.KEY";
 
-    private static final String DEFAULT_ACTIVITIES_SET = "Hiking,Hunting,Fishing,Cycling";
+    private static final String DEFAULT_ACTIVITIES_SET = "Hiking:1,Running:2,Cycling:3,Geocaching:4";
     private static final String DELIMETER = ",";
+    private static final String ICON_DELIMETER = ":";
 
     public static final String ACTION_ACTIVITIES_UPDATED = DialogActivitiesEdit.class.getCanonicalName() + ".ACTION_ACTIVITIES_UPDATED";
 
@@ -62,19 +66,25 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         final String[] activities_array = preferences.getString(KEY_ACTIVITIES, DEFAULT_ACTIVITIES_SET).split(DELIMETER);
         final List<String> activities = new ArrayList<>();
+        final Map<String, Integer> icons = new HashMap<>();
         final Map<String, List<String>> types = new HashMap<>();
-        final ActivitiesPreference preference = new ActivitiesPreference(activities, types);
+        final ActivitiesPreference preference = new ActivitiesPreference(activities, icons, types);
+        String[] splits;
         for (String activity : activities_array) {
-            if (!activity.isEmpty()) activities.add(activity);
-            final String activity_subtypes_key = KEY_MARKERTYPES + "." + activity;
-            final String pref = preferences.getString(activity_subtypes_key, null);
-            final List<String> list = new ArrayList<>();
-            list.add("");
-            if (pref != null) {
-                final String[] subtypes_array = pref.split(DELIMETER);
-                Collections.addAll(list, subtypes_array);
+            if (!activity.isEmpty()) {
+                splits = activity.split(ICON_DELIMETER);
+                activities.add(splits[0]);
+                icons.put(splits[0], Integer.valueOf(splits[1]));
+                final String activity_subtypes_key = KEY_MARKERTYPES + "." + activity;
+                final String pref = preferences.getString(activity_subtypes_key, null);
+                final List<String> list = new ArrayList<>();
+                list.add("");
+                if (pref != null) {
+                    final String[] subtypes_array = pref.split(DELIMETER);
+                    Collections.addAll(list, subtypes_array);
+                }
+                types.put(splits[0], list);
             }
-            types.put(activity, list);
         }
         activities.add(0, "");
         types.put(activities.get(0), new ArrayList<String>());
@@ -104,7 +114,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         mRecyclerView = (RecyclerView) view.findViewById(R.id.item_list_preference_list);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mRecyclerView.setAdapter(new Adapter(mPreference.activities));
+        mRecyclerView.setAdapter(new Adapter(mPreference.activities.subList(1, mPreference.activities.size())));
 
         final Toolbar toolbar = (Toolbar) view.findViewById(R.id.edit_activities_toolbar);
         toolbar.setTitle(R.string.dialog_edit_activities_title);
@@ -233,6 +243,20 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             holder.txtHeader.setText(mDataset.get(position));
+            if (!mShowingActivityDetail) {
+                Drawable icon = null;
+                try {
+                    final int id = UserMarker.ICON_MAPPING[mPreference.icons.get(mDataset.get(position))];
+                    if (id > 0) {
+                        icon = getResources().getDrawable(id);
+                    } else {
+                        icon = getResources().getDrawable(R.drawable.ic_place_white_24dp);
+                    }
+                } finally {
+                    holder.imgView.setImageDrawable(icon);
+                    holder.imgView.setColorFilter(getResources().getColor(R.color.accent), PorterDuff.Mode.SRC_ATOP);
+                }
+            }
         }
 
         @Override
@@ -279,10 +303,12 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
     public static class ActivitiesPreference {
 
         public final List<String> activities;
+        public final Map<String, Integer> icons;
         public final Map<String, List<String>> types;
 
-        public ActivitiesPreference(List<String> activities, Map<String, List<String>> types) {
+        public ActivitiesPreference(List<String> activities, Map<String, Integer> icons, Map<String, List<String>> types) {
             this.activities = activities;
+            this.icons = icons;
             this.types = types;
         }
     }

@@ -13,11 +13,11 @@ import com.jwoolston.wildtracks.R;
 public class UserMarker implements ClusterItem {
 
     public static final int[] ICON_MAPPING = new int[] {
-        R.drawable.ic_place_white_24dp, // Unknown icon or generic marker
-        R.drawable.ic_explore_white_24dp, // i.e. Geocaching
-        R.drawable.ic_directions_bike_white_24dp, // i.e. Cycling/Mountain biking
+        0, // Unknown icon or generic marker
+        R.drawable.ic_directions_walk_white_24dp, // i.e. Walking
         R.drawable.ic_directions_run_white_24dp, // i.e. Running/Jogging
-        R.drawable.ic_directions_walk_white_24dp // i.e. Walking
+        R.drawable.ic_directions_bike_white_24dp, // i.e. Cycling/Mountain biking
+        R.drawable.ic_explore_white_24dp, // i.e. Geocaching
     };
 
     private Marker mMarker;
