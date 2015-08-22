@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -84,6 +85,7 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
         centerParams.bottomMargin = activityOffset;
         frame.addView(mBackgroundImage, params);
         frame.addView(mImageView, centerParams);
+        mImageView.bringToFront();
         mBackgroundImage.setImageDrawable(mContext.getResources().getDrawable(R.drawable.user_marker_background));
         mMarkerIconGenerator.setContentView(frame);
         mMarkerIconGenerator.setBackground(null);
@@ -96,6 +98,7 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
     protected void onBeforeClusterItemRendered(UserMarker marker, MarkerOptions markerOptions) {
         // Draw a single user marker.
         markerOptions.title(marker.getName());
+        Log.d(TAG, "Marker icon index: " + marker.getIcon());
         BitmapDescriptor icon = mActivityBitmapDescriptors.get(marker.getIcon());
         if (icon != null) {
             markerOptions.icon(icon);

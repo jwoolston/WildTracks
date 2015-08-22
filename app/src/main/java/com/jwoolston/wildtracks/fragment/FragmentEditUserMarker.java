@@ -200,7 +200,7 @@ public class FragmentEditUserMarker extends Fragment implements Toolbar.OnMenuIt
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         if (parent.getId() == mActivitySpinner.getId()) {
             mMarker.setActivity(position);
-            mMarker.setIcon(UserMarker.ICON_MAPPING[position]);
+            mMarker.setIcon(position);
             updateTypeSpinner(position);
         } else if (parent.getId() == mTypeSpinner.getId()) {
             mMarker.setType(position);
