@@ -72,8 +72,10 @@ public class UserMarkerDatabase {
         values.put(Helper.COLUMN_NAME, marker.getName());
         Log.d(TAG, "Saving with content values: " + values);
         if (marker.getId() >= 0) {
+            Log.d(TAG, "Updating existing marker.");
             return (mDatabase.update(Helper.TABLE_MARKERS, values, Helper.COLUMN_ID + " = ?", new String[] {String.valueOf(marker.getId())}) == 1);
         } else {
+            Log.d(TAG, "Saving new marker.");
             final long id = mDatabase.insertOrThrow(Helper.TABLE_MARKERS, null, values);
             if (id > -1) {
                 marker.setId(id);

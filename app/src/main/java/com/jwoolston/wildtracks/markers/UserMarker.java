@@ -1,5 +1,7 @@
 package com.jwoolston.wildtracks.markers;
 
+import android.util.Log;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -11,6 +13,8 @@ import com.jwoolston.wildtracks.R;
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
 public class UserMarker implements ClusterItem {
+
+    private static final String TAG = UserMarker.class.getSimpleName();
 
     public static final int[] ICON_MAPPING = new int[] {
         0, // Unknown icon or generic marker
@@ -59,6 +63,7 @@ public class UserMarker implements ClusterItem {
 
     public void removeFromMap() {
         if (mMarker != null) {
+            Log.d(TAG, "Removing temporary map marker.");
             // Remove from the map
             mMarker.remove();
             // Clear the params for handling the marker ourself

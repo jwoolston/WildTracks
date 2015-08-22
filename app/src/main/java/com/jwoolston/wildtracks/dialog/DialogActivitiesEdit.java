@@ -225,6 +225,11 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         }
     }
 
+    protected boolean onListItemLongClicked(Adapter.ViewHolder holder, int position) {
+
+        return false;
+    }
+
     protected class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
         protected List<String> mDataset;
@@ -279,7 +284,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
             notifyItemRemoved(position);
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
             // each data item is just a string in this case
             public ImageView imgView;
             public TextView txtHeader;
@@ -288,6 +293,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
                 super(v);
                 v.setClickable(true);
                 v.setOnClickListener(this);
+                v.setOnLongClickListener(this);
                 imgView = (ImageView) v.findViewById(R.id.icon);
                 txtHeader = (TextView) v.findViewById(R.id.firstLine);
             }
@@ -296,6 +302,11 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
             public void onClick(View v) {
                 // Should only have one view assigned to it so don't bother checking
                 DialogActivitiesEdit.this.onListItemClicked(this, getAdapterPosition());
+            }
+
+            @Override
+            public boolean onLongClick(View v) {
+                return DialogActivitiesEdit.this.onListItemLongClicked(this, getAdapterPosition());
             }
         }
     }

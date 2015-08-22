@@ -71,8 +71,6 @@ public class UserMarkerManager {
     }
 
     public void saveUserMarker(UserMarker marker) {
-        // Remove the old self managed marker if it existed
-        marker.removeFromMap();
         // Save the marker in the database
         mUserMarkerDatabase.addOrUpdateUserMarker(marker);
         // Check if we need to update our in memory mapping
@@ -80,6 +78,7 @@ public class UserMarkerManager {
             final Integer activity = mUserMarkerActivityMap.get(marker.getId());
             if (activity != null && activity != marker.getActivity()) {
                 // This marker already exists in the map, find it and move it
+                Log.d(TAG, "Updating internal marker mapping.");
                 final Set<UserMarker> original = mUserMarkerMap.get(activity);
                 original.remove(marker);
                 Set<UserMarker> newSet = mUserMarkerMap.get(marker.getActivity());
@@ -87,17 +86,21 @@ public class UserMarkerManager {
                 newSet.add(marker);
                 mUserMarkerMap.put(marker.getActivity(), newSet);
                 mUserMarkerActivityMap.put(marker.getId(), marker.getActivity());
+                mMapManager.refreshDisplayedActivities();
             } else {
                 // This marker does not exist in the map, add it
+                Log.d(TAG, "Adding new marker to internal map.");
                 Set<UserMarker> set = mUserMarkerMap.get(marker.getActivity());
                 if (set == null) set = new HashSet<>();
                 set.add(marker);
                 mUserMarkerMap.put(marker.getActivity(), set);
                 mUserMarkerActivityMap.put(marker.getId(), marker.getActivity());
+                // Remove the old self managed marker if it existed
+                marker.removeFromMap();
+                // Switch to having the cluster manager manage it
+                mMapManager.addUserMarker(marker);
             }
         }
-        // Switch to having the cluster manager manage it
-        mMapManager.addUserMarker(marker);
     }
 
     public void deleteUserMarker(UserMarker marker) {
