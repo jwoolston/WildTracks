@@ -86,6 +86,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
 
     private LocationManager mLocationManager;
     private UserMarkerManager mUserMarkerManager;
+    private UserMarkerRenderer mUserMarkerRenderer;
     private UnhandledMarkerClusterManager<UserMarker> mClusterManager;
 
     private boolean mTrackingLocation;
@@ -158,7 +159,8 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMap.setOnMarkerClickListener(mClusterManager);
         mMap.setOnInfoWindowClickListener(mClusterManager);
 
-        mClusterManager.setRenderer(new UserMarkerRenderer(mContext, mMap, mClusterManager));
+        mUserMarkerRenderer = new UserMarkerRenderer(mContext, mMap, mClusterManager);
+        mClusterManager.setRenderer(mUserMarkerRenderer);
         mClusterManager.setOnClusterClickListener(this);
         mClusterManager.setOnClusterInfoWindowClickListener(this);
         mClusterManager.setOnClusterItemClickListener(this);
@@ -459,7 +461,8 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
             final MarkerOptions options = new MarkerOptions()
                 .position(latLng)
                 .draggable(true)
-                .title(mContext.getString(R.string.new_marker_title));
+                .title(mContext.getString(R.string.new_marker_title))
+                .icon(mUserMarkerRenderer.getDefaultMarkerIcon());
             mTempMarker = new UserMarker(options);
             mTempMarker.addToMap(mMap);
             mFragmentEditUserMarker.clearMarkerName();

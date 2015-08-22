@@ -10,8 +10,6 @@ import android.graphics.drawable.shapes.OvalShape;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -70,8 +68,6 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
 
         mMarkerIconGenerator = new IconGenerator(context);
 
-        final View layout = LayoutInflater.from(mContext).inflate(R.layout.layout_custom_marker, null);
-
         final int markerSize = mContext.getResources().getDimensionPixelSize(R.dimen.user_marker_dimension);
         final int activitySize = mContext.getResources().getDimensionPixelSize(R.dimen.user_marker_activity_dimension);
         final int activityOffset = mContext.getResources().getDimensionPixelSize(R.dimen.user_marker_activity_bottom_offset);
@@ -92,6 +88,14 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
 
         mActivityBitmapDescriptors = initializeBitmapDescriptors();
         mClusterBitmapDescriptors = new SparseArray<>(BUCKETS.length);
+    }
+
+    public BitmapDescriptor getDefaultMarkerIcon() {
+        return mActivityBitmapDescriptors.get(0);
+    }
+
+    public BitmapDescriptor getIconForMarker(UserMarker marker) {
+        return mActivityBitmapDescriptors.get(marker.getIcon());
     }
 
     @Override
