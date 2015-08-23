@@ -159,7 +159,7 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMap.setOnMarkerClickListener(mClusterManager);
         mMap.setOnInfoWindowClickListener(mClusterManager);
 
-        mUserMarkerRenderer = new UserMarkerRenderer(mContext, mMap, mClusterManager);
+        mUserMarkerRenderer = new UserMarkerRenderer(mContext, mMap, this, mClusterManager);
         mClusterManager.setRenderer(mUserMarkerRenderer);
         mClusterManager.setOnClusterClickListener(this);
         mClusterManager.setOnClusterInfoWindowClickListener(this);
@@ -303,6 +303,13 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     public DialogActivitiesEdit.ActivitiesPreference getActivitiesList() {
         synchronized (ACTIVITIES_LOCK) {
             return mActivitiesPreference;
+        }
+    }
+
+    public int getIconIndexForMarker(UserMarker marker) {
+        final String activity = mActivitiesPreference.activities.get(marker.getActivity());
+        synchronized (ACTIVITIES_LOCK) {
+            return mActivitiesPreference.icons.get(activity);
         }
     }
 

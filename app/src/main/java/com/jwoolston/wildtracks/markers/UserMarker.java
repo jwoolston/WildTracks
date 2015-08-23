@@ -7,7 +7,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterItem;
-import com.jwoolston.wildtracks.R;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
@@ -15,14 +14,6 @@ import com.jwoolston.wildtracks.R;
 public class UserMarker implements ClusterItem {
 
     private static final String TAG = UserMarker.class.getSimpleName();
-
-    public static final int[] ICON_MAPPING = new int[] {
-        0, // Unknown icon or generic marker
-        R.drawable.ic_directions_walk_white_24dp, // i.e. Walking
-        R.drawable.ic_directions_run_white_24dp, // i.e. Running/Jogging
-        R.drawable.ic_directions_bike_white_24dp, // i.e. Cycling/Mountain biking
-        R.drawable.ic_explore_white_24dp, // i.e. Geocaching
-    };
 
     private Marker mMarker;
     private MarkerOptions mMarkerOptions;
@@ -33,7 +24,6 @@ public class UserMarker implements ClusterItem {
     private long mCreated = -1;
     private int mActivity = 0;
     private int mType = 0;
-    private int mIcon = 0; // Default to generic marker
     private String mNotes = "";
 
     public UserMarker(MarkerOptions options) {
@@ -44,7 +34,7 @@ public class UserMarker implements ClusterItem {
         mLocation = new LatLng(position.latitude, position.longitude);
     }
 
-    public UserMarker(int id, String name, LatLng position, long created, int activity, int type, int icon, String notes) {
+    public UserMarker(int id, String name, LatLng position, long created, int activity, int type, String notes) {
         mId = id;
         mName = name;
         mMarkerOptions = new MarkerOptions();
@@ -53,7 +43,6 @@ public class UserMarker implements ClusterItem {
         mCreated = created;
         mActivity = activity;
         mType = type;
-        mIcon = icon;
         mNotes = notes;
     }
 
@@ -111,10 +100,6 @@ public class UserMarker implements ClusterItem {
         mType = type;
     }
 
-    public void setIcon(int icon) {
-        mIcon = icon;
-    }
-
     public void setNotes(String notes) {
         mNotes = notes;
     }
@@ -147,14 +132,6 @@ public class UserMarker implements ClusterItem {
         return mType;
     }
 
-    public int getIcon() {
-        return mIcon;
-    }
-
-    public int getIconResource() {
-        return ICON_MAPPING[mIcon];
-    }
-
     public String getNotes() {
         return mNotes;
     }
@@ -166,7 +143,6 @@ public class UserMarker implements ClusterItem {
             ", mCreated=" + mCreated +
             ", mActivity=" + mActivity +
             ", mType=" + mType +
-            ", mIcon=" + mIcon +
             ", mNotes='" + mNotes + '\'' +
             '}';
     }

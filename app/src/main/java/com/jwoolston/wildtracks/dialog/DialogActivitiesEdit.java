@@ -27,7 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jwoolston.wildtracks.R;
-import com.jwoolston.wildtracks.markers.UserMarker;
+import com.jwoolston.wildtracks.markers.UserMarkerRenderer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -251,7 +251,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
             if (!mShowingActivityDetail) {
                 Drawable icon = null;
                 try {
-                    final int id = UserMarker.ICON_MAPPING[mPreference.icons.get(mDataset.get(position))];
+                    final int id = UserMarkerRenderer.ICON_MAPPING[mPreference.icons.get(mDataset.get(position))];
                     if (id > 0) {
                         icon = getResources().getDrawable(id);
                     } else {

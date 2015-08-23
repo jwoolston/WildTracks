@@ -36,7 +36,7 @@ public class UserMarkerDatabase {
 
     // All columns query shortcut
     private String[] ALL_COLUMNS = {Helper.COLUMN_ID, Helper.COLUMN_NAME, Helper.COLUMN_LATITUDE, Helper.COLUMN_LONGITUDE, Helper.COLUMN_CREATED,
-        Helper.COLUMN_ACTIVITY, Helper.COLUMN_TYPE, Helper.COLUMN_ICON, Helper.COLUMN_NOTES};
+        Helper.COLUMN_ACTIVITY, Helper.COLUMN_TYPE, Helper.COLUMN_NOTES};
 
     public UserMarkerDatabase(Context context) {
         final File path = new File(Environment.getExternalStorageDirectory(), context.getString(R.string.app_name) + "/" + Helper.DATABASE_NAME);
@@ -67,7 +67,6 @@ public class UserMarkerDatabase {
         values.put(Helper.COLUMN_CREATED, marker.getCreated());
         values.put(Helper.COLUMN_ACTIVITY, marker.getActivity());
         values.put(Helper.COLUMN_TYPE, marker.getType());
-        values.put(Helper.COLUMN_ICON, marker.getIcon());
         values.put(Helper.COLUMN_NOTES, marker.getNotes());
         values.put(Helper.COLUMN_NAME, marker.getName());
         Log.d(TAG, "Saving with content values: " + values);
@@ -141,9 +140,8 @@ public class UserMarkerDatabase {
         final long created = cursor.getLong(cursor.getColumnIndexOrThrow(Helper.COLUMN_CREATED));
         final int activity = cursor.getInt(cursor.getColumnIndexOrThrow(Helper.COLUMN_ACTIVITY));
         final int type = cursor.getInt(cursor.getColumnIndexOrThrow(Helper.COLUMN_TYPE));
-        final int icon = cursor.getInt(cursor.getColumnIndexOrThrow(Helper.COLUMN_ICON));
         final String notes = cursor.getString(cursor.getColumnIndexOrThrow(Helper.COLUMN_NOTES));
-        return new UserMarker(id, name, new LatLng(latititude, longitude), created, activity, type, icon, notes);
+        return new UserMarker(id, name, new LatLng(latititude, longitude), created, activity, type, notes);
     }
 
     /**
@@ -161,11 +159,10 @@ public class UserMarkerDatabase {
         static final String COLUMN_CREATED = "created_on";
         static final String COLUMN_ACTIVITY = "activity";
         static final String COLUMN_TYPE = "type";
-        static final String COLUMN_ICON = "icon";
         static final String COLUMN_NOTES = "notes";
 
         private static final String DATABASE_NAME = "user_markers.db";
-        private static final int DATABASE_VERSION = 1;
+        private static final int DATABASE_VERSION = 2;
 
         private static final String DATABASE_CREATE = "create table "
             + TABLE_MARKERS + "(" + COLUMN_ID + " integer primary key autoincrement, "
@@ -175,7 +172,6 @@ public class UserMarkerDatabase {
             + COLUMN_CREATED + " integer not null, "
             + COLUMN_ACTIVITY + " integer not null, "
             + COLUMN_TYPE + " integer not null, "
-            + COLUMN_ICON + " integer not null, "
             + COLUMN_NOTES + " text not null);";
 
         private Helper(Context context, String path) {

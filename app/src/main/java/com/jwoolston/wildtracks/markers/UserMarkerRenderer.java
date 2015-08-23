@@ -3,11 +3,11 @@ package com.jwoolston.wildtracks.markers;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -24,6 +24,7 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
 import com.google.maps.android.ui.SquareTextView;
 import com.jwoolston.wildtracks.R;
+import com.jwoolston.wildtracks.mapping.MapManager;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
@@ -34,7 +35,16 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
 
     private static final int[] BUCKETS = {5, 10, 25, 50, 100, 500, 1000};
 
+    public static final int[] ICON_MAPPING = new int[]{
+        0, // Unknown icon or generic marker
+        R.drawable.ic_directions_walk_white_24dp, // i.e. Walking
+        R.drawable.ic_directions_run_white_24dp, // i.e. Running/Jogging
+        R.drawable.ic_directions_bike_white_24dp, // i.e. Cycling/Mountain biking
+        R.drawable.ic_explore_white_24dp, // i.e. Geocaching
+    };
+
     private final Context mContext;
+    private final MapManager mMapManager;
 
     private final int[] mClusterColors;
     private final SparseArray<BitmapDescriptor> mActivityBitmapDescriptors;
@@ -47,9 +57,10 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
     private final ImageView mImageView;
     private final ImageView mBackgroundImage;
 
-    public UserMarkerRenderer(Context context, GoogleMap map, ClusterManager<UserMarker> clusterManager) {
+    public UserMarkerRenderer(Context context, GoogleMap map, MapManager mapManager, ClusterManager<UserMarker> clusterManager) {
         super(context.getApplicationContext(), map, clusterManager);
         mContext = context.getApplicationContext();
+        mMapManager = mapManager;
 
         TypedArray typedArray = context.getResources().obtainTypedArray(R.array.colorClusters);
         mClusterColors = new int[typedArray.length()];
@@ -83,6 +94,7 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
         frame.addView(mImageView, centerParams);
         mImageView.bringToFront();
         mBackgroundImage.setImageDrawable(mContext.getResources().getDrawable(R.drawable.user_marker_background));
+        mBackgroundImage.setColorFilter(mContext.getResources().getColor(R.color.accent), PorterDuff.Mode.SRC_ATOP);
         mMarkerIconGenerator.setContentView(frame);
         mMarkerIconGenerator.setBackground(null);
 
@@ -95,15 +107,14 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
     }
 
     public BitmapDescriptor getIconForMarker(UserMarker marker) {
-        return mActivityBitmapDescriptors.get(marker.getIcon());
+        return mActivityBitmapDescriptors.get(mMapManager.getIconIndexForMarker(marker));
     }
 
     @Override
     protected void onBeforeClusterItemRendered(UserMarker marker, MarkerOptions markerOptions) {
         // Draw a single user marker.
         markerOptions.title(marker.getName());
-        Log.d(TAG, "Marker icon index: " + marker.getIcon());
-        BitmapDescriptor icon = mActivityBitmapDescriptors.get(marker.getIcon());
+        BitmapDescriptor icon = mActivityBitmapDescriptors.get(mMapManager.getIconIndexForMarker(marker));
         if (icon != null) {
             markerOptions.icon(icon);
             markerOptions.anchor(0.5f, 1.0f);
@@ -134,9 +145,9 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
     }
 
     private SparseArray<BitmapDescriptor> initializeBitmapDescriptors() {
-        final SparseArray<BitmapDescriptor> descriptors = new SparseArray<>(UserMarker.ICON_MAPPING.length);
-        for (int i = 0; i < UserMarker.ICON_MAPPING.length; ++i) {
-            final int id = UserMarker.ICON_MAPPING[i];
+        final SparseArray<BitmapDescriptor> descriptors = new SparseArray<>(ICON_MAPPING.length);
+        for (int i = 0; i < ICON_MAPPING.length; ++i) {
+            final int id = ICON_MAPPING[i];
             if (id != 0) {
                 mImageView.setImageDrawable(mContext.getResources().getDrawable(id));
             } else {
