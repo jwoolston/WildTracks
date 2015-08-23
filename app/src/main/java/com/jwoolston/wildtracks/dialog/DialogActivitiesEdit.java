@@ -133,7 +133,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
                     mTempList = null;
                     mShowingActivityDetail = false;
                     mCurrentActivityDetail = null;
-                    mRecyclerView.setAdapter(new Adapter(mPreference.activities));
+                    mRecyclerView.setAdapter(new Adapter(mPreference.activities.subList(1, mPreference.activities.size())));
                 }
             }
         });
