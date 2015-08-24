@@ -28,6 +28,7 @@
     <string name="dialog_legal_notices_nononsense_title">NoNonsense File Picker</string>
     <string name="dialog_legal_notices_nononsense_text">This program utilizes the NoNonsense File Picker (https://github.com/spacecowboy/NoNonsense-FilePicker) by GitHub user spacecowboy (https://github.com/spacecowboy). The terms of its license are included below and pertain only to the portion of this application\'s object code which comes from this library.</string>
     <string name="dialog_edit_activities_title">Activities</string>
+    <string name="dialog_activity_icon_chooser_title">Select An Icon</string>
     <string name="menu_edit_activities_action_save">Save</string>
     <string name="menu_creation_time_prefix">Created: %1$s, %2$s</string>
     <string name="menu_coordinates_placeholder">0.0, 0.0</string>

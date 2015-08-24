@@ -12,17 +12,20 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.jwoolston.wildtracks.R;
 
 /**
  * @author Jared Woolston (jwoolston@idealcorp.com)
  */
-public class DialogEditText extends DialogFragment implements TextView.OnEditorActionListener {
+public class DialogEditText extends DialogFragment implements TextView.OnEditorActionListener, View.OnClickListener {
 
     private static final String TAG = DialogEditText.class.getSimpleName();
 
+    private ImageView mImageView;
     private EditText mEditText;
     private EditTextListener mNameDialogListener;
     private boolean isActivity;
@@ -52,11 +55,18 @@ public class DialogEditText extends DialogFragment implements TextView.OnEditorA
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.dialog_edit_text, container);
+
+        mImageView = (ImageView) view.findViewById(R.id.icon);
         mEditText = (EditText) view.findViewById(R.id.text_field);
         mEditText.setOnEditorActionListener(this);
         mEditText.setHint(isActivity ? "i.e. Hiking" : "i.e. Trailhead");
+
+        if (isActivity) {
+            mImageView.setOnClickListener(this);
+        }
+
         final Toolbar toolbar = (Toolbar) view.findViewById(R.id.edit_text_toolbar);
-        toolbar.setTitle("Create new " + (isActivity ? "Activity" : "Marker Type"));
+        toolbar.setTitle("Create New " + (isActivity ? "Activity" : "Marker Type"));
         return view;
     }
 
@@ -69,6 +79,19 @@ public class DialogEditText extends DialogFragment implements TextView.OnEditorA
             return true;
         }
         return false;
+    }
+
+    /**
+     * Called when a view has been clicked.
+     *
+     * @param v The view that was clicked.
+     */
+    @Override
+    public void onClick(View v) {
+        final int id = v.getId();
+        if (id == R.id.icon) {
+            Toast.makeText(getActivity(), "Image view clicked.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public interface EditTextListener {

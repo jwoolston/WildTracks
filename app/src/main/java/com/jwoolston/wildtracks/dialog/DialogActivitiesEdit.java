@@ -1,11 +1,14 @@
 package com.jwoolston.wildtracks.dialog;
 
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -17,6 +20,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -64,6 +68,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
 
     public static ActivitiesPreference reloadPreference(Context context) {
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        Log.d(TAG, "Loading activities preference: " + preferences.getString(KEY_ACTIVITIES, DEFAULT_ACTIVITIES_SET));
         final String[] activities_array = preferences.getString(KEY_ACTIVITIES, DEFAULT_ACTIVITIES_SET).split(DELIMETER);
         final List<String> activities = new ArrayList<>();
         final Map<String, Integer> icons = new HashMap<>();
@@ -91,8 +96,54 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         return preference;
     }
 
+    public static void persistPreference(Context context, ActivitiesPreference preference) {
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        final SharedPreferences.Editor editor = preferences.edit();
+        final StringBuilder builder_activities = new StringBuilder();
+        StringBuilder builder_subtypes;
+        for (String activity : preference.activities) {
+            if (activity == null || activity.isEmpty()) continue;
+            builder_activities.append(activity).append(ICON_DELIMETER);
+            builder_activities.append(preference.icons.get(activity)).append(DELIMETER);
+            final String activity_subtypes_key = KEY_MARKERTYPES + "." + activity;
+            final List<String> list = preference.types.get(activity);
+            builder_subtypes = new StringBuilder();
+            for (String s : list) {
+                builder_subtypes.append(s).append(DELIMETER);
+            }
+            editor.putString(activity_subtypes_key, builder_subtypes.toString());
+        }
+        Log.d(TAG, "Saving activities preference: " + builder_activities.toString());
+        editor.putString(KEY_ACTIVITIES, builder_activities.toString());
+        editor.apply();
+        final Intent intent = new Intent(ACTION_ACTIVITIES_UPDATED);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
+    private final BroadcastReceiver mActivitiesUpdatedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Received broadcast of activity preference update.");
+            mPreference = DialogActivitiesEdit.reloadPreference(context);
+            // Sure we could update the existing adapter, but this is simpler and its not that heavy
+            mRecyclerView.setAdapter(new Adapter(mPreference.activities.subList(1, mPreference.activities.size())));
+        }
+    };
+
     public DialogActivitiesEdit() {
         super();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mLocalBroadcastManager.registerReceiver(mActivitiesUpdatedReceiver, new IntentFilter(ACTION_ACTIVITIES_UPDATED));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mLocalBroadcastManager.unregisterReceiver(mActivitiesUpdatedReceiver);
     }
 
     @NonNull
@@ -159,7 +210,7 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
     public boolean onMenuItemClick(MenuItem item) {
         final int id = item.getItemId();
         if (id == R.id.menu_edit_activities_done) {
-            persistPreference();
+            persistPreference(getActivity(), mPreference);
             dismiss();
         }
         return false;
@@ -192,27 +243,6 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         dialog.show(fm, DialogEditText.class.getCanonicalName());
     }
 
-    protected void persistPreference() {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        final SharedPreferences.Editor editor = preferences.edit();
-        final StringBuilder builder_activities = new StringBuilder();
-        StringBuilder builder_subtypes;
-        for (String activity : mPreference.activities) {
-            builder_activities.append(activity).append(DELIMETER);
-            final String activity_subtypes_key = KEY_MARKERTYPES + "." + activity;
-            final List<String> list = mPreference.types.get(activity);
-            builder_subtypes = new StringBuilder();
-            for (String s : list) {
-                builder_subtypes.append(s).append(DELIMETER);
-            }
-            editor.putString(activity_subtypes_key, builder_subtypes.toString());
-        }
-        editor.putString(KEY_ACTIVITIES, builder_activities.toString());
-        editor.apply();
-        final Intent intent = new Intent(ACTION_ACTIVITIES_UPDATED);
-        mLocalBroadcastManager.sendBroadcast(intent);
-    }
-
     protected void onListItemClicked(Adapter.ViewHolder holder, int position) {
         if (!mShowingActivityDetail) {
             mShowingActivityDetail = true;
@@ -226,8 +256,10 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
     }
 
     protected boolean onListItemLongClicked(Adapter.ViewHolder holder, int position) {
-
-        return false;
+        final DialogActivityIconChooser chooser = new DialogActivityIconChooser();
+        chooser.setActivity(mPreference.activities.get(position + 1));
+        chooser.show(getActivity().getSupportFragmentManager(), DialogActivityIconChooser.class.getCanonicalName());
+        return true;
     }
 
     protected class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
@@ -248,19 +280,19 @@ public class DialogActivitiesEdit extends DialogFragment implements View.OnClick
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             holder.txtHeader.setText(mDataset.get(position));
-            if (!mShowingActivityDetail) {
-                Drawable icon = null;
-                try {
-                    final int id = UserMarkerRenderer.ICON_MAPPING[mPreference.icons.get(mDataset.get(position))];
-                    if (id > 0) {
-                        icon = getResources().getDrawable(id);
-                    } else {
-                        icon = getResources().getDrawable(R.drawable.ic_place_white_24dp);
-                    }
-                } finally {
-                    holder.imgView.setImageDrawable(icon);
-                    holder.imgView.setColorFilter(getResources().getColor(R.color.accent), PorterDuff.Mode.SRC_ATOP);
+            Drawable icon = null;
+            try {
+                final String key = !mShowingActivityDetail ? mDataset.get(position) : mCurrentActivityDetail;
+                int id = UserMarkerRenderer.ICON_MAPPING[mPreference.icons.get(key)];
+                if (id <= 0) id = R.drawable.ic_place_white_24dp;
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                    icon = getResources().getDrawable(id);
+                } else {
+                    icon = getActivity().getDrawable(id);
                 }
+            } finally {
+                holder.imgView.setImageDrawable(icon);
+                holder.imgView.setColorFilter(getResources().getColor(R.color.accent), PorterDuff.Mode.SRC_ATOP);
             }
         }
 

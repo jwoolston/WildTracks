@@ -21,4 +21,7 @@
     <dimen name="user_marker_dimension">72dp</dimen>
     <dimen name="user_marker_activity_dimension">24dp</dimen>
     <dimen name="user_marker_activity_bottom_offset">11.5dp</dimen>
+
+    <dimen name="activity_icon_chooser_width">400dp</dimen>
+    <dimen name="activity_icon_chooser_height">600dp</dimen>
 </resources>

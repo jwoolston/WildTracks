@@ -291,7 +291,9 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     }
 
     public void refreshDisplayedActivities() {
+        Log.d(TAG, "Clearing all markers.");
         mClusterManager.clearItems();
+        Log.d(TAG, "Re-adding all markers.");
         addUserMarkers();
     }
 
@@ -307,8 +309,10 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     }
 
     public int getIconIndexForMarker(UserMarker marker) {
-        final String activity = mActivitiesPreference.activities.get(marker.getActivity());
         synchronized (ACTIVITIES_LOCK) {
+            Log.i(TAG, "Fetching marker icon for marker: " + marker);
+            Log.i(TAG, "Icon mapping: " + mActivitiesPreference.icons);
+            final String activity = mActivitiesPreference.activities.get(marker.getActivity());
             return mActivitiesPreference.icons.get(activity);
         }
     }
@@ -509,8 +513,12 @@ public class MapManager implements OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     private final BroadcastReceiver mActivitiesUpdatedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Received broadcast of activity preference update.");
             synchronized (ACTIVITIES_LOCK) {
                 mActivitiesPreference = DialogActivitiesEdit.reloadPreference(context);
+                mUserMarkerRenderer.initializeBitmapDescriptors();
+                Log.d(TAG, "Redrawing user markers.");
+                refreshDisplayedActivities();
             }
         }
     };

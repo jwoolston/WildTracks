@@ -43,6 +43,14 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
         R.drawable.ic_explore_white_24dp, // i.e. Geocaching
     };
 
+    public static final int[] LARGE_ICON_MAPPING = new int[]{
+        0, // Unknown icon or generic marker
+        R.drawable.ic_directions_walk_white_48dp, // i.e. Walking
+        R.drawable.ic_directions_run_white_48dp, // i.e. Running/Jogging
+        R.drawable.ic_directions_bike_white_48dp, // i.e. Cycling/Mountain biking
+        R.drawable.ic_explore_white_48dp, // i.e. Geocaching
+    };
+
     private final Context mContext;
     private final MapManager mMapManager;
 
@@ -144,7 +152,7 @@ public class UserMarkerRenderer extends DefaultClusterRenderer<UserMarker> {
         return cluster.getSize() > 1;
     }
 
-    private SparseArray<BitmapDescriptor> initializeBitmapDescriptors() {
+    public SparseArray<BitmapDescriptor> initializeBitmapDescriptors() {
         final SparseArray<BitmapDescriptor> descriptors = new SparseArray<>(ICON_MAPPING.length);
         for (int i = 0; i < ICON_MAPPING.length; ++i) {
             final int id = ICON_MAPPING[i];
